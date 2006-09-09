@@ -388,21 +388,6 @@ BEGIN {
     };
 
     push @good_specs, { 
-        label => "valid characters",
-        spec  => [
-            Switch("-?"),
-            Switch("--one-two|--12"),
-        ],
-        cases => [
-            { 
-                argv    => [ qw( -? --one-two ) ],
-                result  => { "?" => 1, "one-two" => 1},
-                desc    => "all switches present"
-            },            
-        ]
-    };
-
-    push @good_specs, { 
         label => "keypairs (w or w/o =)",
         spec  => [
             Counter("--verbose|-v"),
@@ -839,7 +824,7 @@ BEGIN {
             Switch("quick"),
         ],
         exception => "Getopt::Lucid::Exception::Spec",
-        error_msg => _name_conflicts("quick"),
+        error_msg => _name_not_unique("quick"),
         label => "duplicate name bareword and long"
     };
 

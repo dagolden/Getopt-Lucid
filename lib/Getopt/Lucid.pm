@@ -15,15 +15,17 @@ our @EXPORT_OK = qw(Switch Counter Param List Keypair);
 our %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 
 # Definitions
-my $VALID_CHAR      = "a-zA-Z0-9?";
-my $VALID_LONG      = qr/--[$VALID_CHAR-]+/;
+my $VALID_CHAR      = "a-zA-Z0-9";
+my $VALID_LONG      = qr/--[$VALID_CHAR]+/;
 my $VALID_SHORT     = qr/-[$VALID_CHAR]/;
 my $VALID_BARE      = qr/[$VALID_CHAR]+/;
 my $VALID_NAME      = qr/$VALID_LONG|$VALID_SHORT|$VALID_BARE/;
 my $SHORT_BUNDLE    = qr/-[$VALID_CHAR]{2,}/;
 
-my @valid_keys = qw( name type required default nocase valid needs );
+my @valid_keys = qw( name type required default nocase valid needs canon );
 my @valid_types = qw( switch counter parameter list keypair);
+
+our $STRICT = 0;
 
 #--------------------------------------------------------------------------#
 # main pod documentation 
@@ -636,7 +638,8 @@ sub _check_prereqs {
         next unless $self->{seen}{$key};
         next unless exists $self->{spec}{$key}{needs};
         for (@{$self->{spec}{$key}{needs}}) {
-            throw_argv("Option '$key' requires option '$_'")
+            throw_argv("Option '$self->{spec}{$key}{canon}' ".
+                       "requires option '$self->{spec}{$_}{canon}'")
                 unless $self->{seen}{$_};
         }
     }
@@ -649,7 +652,7 @@ sub _check_prereqs {
 sub _check_required {
 	my ($self) = @_;
     for ( keys %{$self->{spec}} ) {
-        throw_argv("Required option '$_' not found")
+        throw_argv("Required option '$self->{spec}{$_}{canon}' not found")
             if ( $self->{spec}{$_}{required} && ! $self->{seen}{$_} ); 
     }
 }
@@ -660,7 +663,7 @@ sub _check_required {
 
 sub _counter {
 	my ($self, $arg, $val) = @_;
-    throw_argv("Counter option can't take a value: $arg=$val")
+    throw_argv("Counter option can't take a value: $self->{spec}{$arg}{canon}=$val")
         if defined $val;
     push @{$self->{parsed}}, [ $arg, 1 ];
 }
@@ -672,6 +675,7 @@ sub _counter {
 sub _find_arg {
 	my ($self, $arg) = @_;
 
+    $arg =~ s/^-*// unless $STRICT;
     return $self->{alias_hr}{$arg} if exists $self->{alias_hr}{$arg}; 
 
     for ( keys %{$self->{alias_nocase}} ) {
@@ -688,10 +692,10 @@ sub _find_arg {
 sub _keypair {
 	my ($self, $arg, $val) = @_;
     my $value = defined $val ? $val : shift @{$self->{target}};
-    throw_argv("Badly formed keypair for '$arg'")
+    throw_argv("Badly formed keypair for '$self->{spec}{$arg}{canon}'")
         unless $value =~ /[^=]+=.+/;
     my ($key, $data) = ( $value =~ /^([^=]*)=(.*)$/ ) ;
-    throw_argv("Invalid keypair '$arg': $key => $data")
+    throw_argv("Invalid keypair '$self->{spec}{$arg}{canon}': $key => $data")
         unless _validate_value($self, { $key => $data }, 
                                $self->{spec}{$arg}{valid});    
     push @{$self->{parsed}}, [ $arg, [ $key, $data ] ];
@@ -704,9 +708,10 @@ sub _keypair {
 sub _list {
 	my ($self, $arg, $val) = @_;
     my $value = defined $val ? $val : shift @{$self->{target}};
-    throw_argv("Ambiguous value for $arg could be option: $value")
-        if ! defined $val and grep {$value eq $_} keys %{$self->{alias_hr}};
-    throw_argv("Invalid list option $arg = $value")
+    throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
+        if ! defined $val and _find_arg($self, $value);
+#        if ! defined $val and grep {$value eq $_} keys %{$self->{alias_hr}};
+    throw_argv("Invalid list option $self->{spec}{$arg}{canon} = $value")
         unless _validate_value($self, $value, $self->{spec}{$arg}{valid});    
     my $strip = $self->{strip}{$arg};
     push @{$self->{parsed}}, [ $arg, $value ];
@@ -719,11 +724,11 @@ sub _list {
 sub _parameter {
 	my ($self, $arg, $val) = @_;
     my $value = defined $val ? $val : shift @{$self->{target}};
-    throw_argv("Parameter can't be repeated: $arg=$value")
+    throw_argv("Parameter can't be repeated: $self->{spec}{$arg}{canon}=$value")
         if $self->{seen}{$arg} > 1;
-    throw_argv("Ambiguous value for $arg could be option: $value")
-        if ! defined $val and grep {$value eq $_} keys %{$self->{alias_hr}};
-    throw_argv("Invalid parameter $arg = $value")
+    throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
+        if ! defined $val and _find_arg($self, $value);
+    throw_argv("Invalid parameter $self->{spec}{$arg}{canon} = $value")
         unless _validate_value($self, $value, $self->{spec}{$arg}{valid});    
     push @{$self->{parsed}}, [ $arg, $value ];
 }
@@ -737,7 +742,9 @@ sub _parse_spec {
     for my $opt ( @$spec ) {
         my $name = $opt->{name};
         my @names = split( /\|/, $name );
+        $opt->{canon} = $names[0];
         _validate_spec($self,\@names,$opt);
+        @names = map { s/^-*//; $_ } @names unless $STRICT;
         for (@names) {
             $self->{alias_hr}{$_} = $names[0];
             $self->{alias_nocase}{$_} = $names[0]  if $opt->{nocase};
@@ -802,9 +809,9 @@ sub _set_defaults {
         my $d = exists ($spec->{default}) ? $spec->{default} : undef;
         my $type = $self->{spec}{$_}{type};
         my $strip = $self->{strip}{$_};
-        throw_spec("Default for list '$_' must be array reference")
+        throw_spec("Default for list '$spec->{canon}' must be array reference")
             if ( $type eq "list" && defined $d && ref($d) ne "ARRAY" ); 
-        throw_spec("Default for keypair '$_' must be hash reference")
+        throw_spec("Default for keypair '$spec->{canon}' must be hash reference")
             if ( $type eq "keypair" && defined $d && ref($d) ne "HASH" ); 
         $default{$strip} = do {
             local $_ = $type;
@@ -815,7 +822,7 @@ sub _set_defaults {
             /keypair/   ?   (defined $d ? clone($d): {})  : 
                             undef;
         };
-        throw_spec("Default '$_' = '$default{$strip}' fails to validate")
+        throw_spec("Default '$spec->{canon}' = '$default{$strip}' fails to validate")
             unless _validate_value($self, $default{$strip}, $spec->{valid});
     }
     $self->{default} = \%default;
@@ -843,9 +850,9 @@ sub _split_equals {
 
 sub _switch {
 	my ($self, $arg, $val) = @_;
-    throw_argv("Switch used twice: $arg")
+    throw_argv("Switch used twice: $self->{spec}{$arg}{canon}")
         if $self->{seen}{$arg} > 1;
-    throw_argv("Switch can't take a value: $arg=$val")
+    throw_argv("Switch can't take a value: $self->{spec}{$arg}{canon}=$val")
         if defined $val;
     push @{$self->{parsed}}, [ $arg, 1 ];
 }
@@ -878,9 +885,9 @@ sub _validate_prereqs {
         my $needs = $self->{spec}{$key}{needs};
         my @prereq = ref($needs) eq 'ARRAY' ? @$needs : ( $needs );
         for (@prereq) {
-            throw_spec("Prerequisite '$_' for '$key' is not recognized")
-                unless exists $self->{alias_hr}{$_};
-            $_ = $self->{alias_hr}{$_};
+            throw_spec("Prerequisite '$_' for '$self->{spec}{$key}{canon}' is not recognized")
+                unless _find_arg($self,$_);
+            $_ = _find_arg($self,$_);
         }
         $self->{spec}{$key}{needs} = \@prereq;
     }   
@@ -894,12 +901,14 @@ sub _validate_prereqs {
 sub _validate_spec {
     my ($self,$names,$details) = @_;
     for my $name ( @$names ) {
+        my $alt_name = $name;
+        $alt_name =~ s/^-*// unless $STRICT;
         throw_spec(
             "'$name' is not a valid option name/alias" 
         ) unless $name =~ /^$VALID_NAME$/;
         throw_spec(
             "'$name' is not unique"
-        ) if exists $self->{alias_hr}{$name};
+        ) if exists $self->{alias_hr}{$alt_name};
         my $strip;
         ($strip = $name) =~ s/^-+//;
         throw_spec(
