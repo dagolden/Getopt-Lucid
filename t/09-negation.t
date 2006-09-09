@@ -110,32 +110,29 @@ BEGIN {
     };
     
     
-    # test negation of required and prereqs
-
-#    push @good_specs, { 
-#        label => "negation test",
-#        spec  => [
-#            Switch("test|t")->default(1),
-#            Counter("verbose|v")->default(2),
-#            Param("file|f")->default("foo.txt"),
-#            List("lib|l")->default(qw( /var /tmp )),
-#            Keypair("def|d")->default({os => 'linux', arch => 'i386'}),
-#        ],
-#        cases => [
-#            { 
-#                argv    => [ qw( --no-test --no-verbose --no-file --no-lib
-#                                 --no-def ) ],
-#                result  => { 
-#                    "test" => 0, 
-#                    "verbose" => 0,
-#                    "file" => "",
-#                    "lib" => [],
-#                    "def" => {},
-#                },
-#                desc    => "long-form negate everything"
-#            },
-#        ],
-#    };
+    push @good_specs, { 
+        label => "required/prereq",
+        spec  => [
+            Switch("test")->required,
+            Param("input")->needs("output"),
+            Param("output"),
+        ],
+        cases => [
+            { 
+                argv    => [ qw( --test --no-test ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _required("test"),
+                desc    => "missing requirement after negation"
+            },
+            { 
+                argv    => [ qw( --test --input in.txt 
+                                 --output out.txt --no-output ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _prereq_missing("input","output",),
+                desc    => "missing prereq after negation"
+            },
+        ],
+    };
 
 } #BEGIN 
 
