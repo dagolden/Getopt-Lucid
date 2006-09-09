@@ -5,7 +5,7 @@ $VERSION = "0.13";
 %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 @ISA = qw( Exporter );
 
-use 5.006;
+use 5.005;
 use strict;
 use Carp;
 use Exporter ();

@@ -18,5 +18,7 @@ t/06-default-handling.t
 t/07-magic-names.t
 t/08-strict-names.t
 t/09-negation.t
+t/98-pod.t
+t/99-pod_coverage.t
 t/ErrorMessages.pm
 Todo

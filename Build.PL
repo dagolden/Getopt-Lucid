@@ -8,7 +8,7 @@ Module::Build->new(
     create_readme => 0,
     license         => 'perl',
     requires => {
-        perl => 5.006,
+        perl => 5.005,
         Exception::Class => 1.20,
         Storable => 2,
         # build requires:

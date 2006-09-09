@@ -1,6 +1,7 @@
 package t::ErrorMessages;
-use Exporter;
-our @ISA = ("Exporter");
+@ISA = ("Exporter");
+use strict;
+use Exporter ();
 
 sub _invalid_argument   {sprintf("Invalid argument: %s",@_)}
 sub _required           {sprintf("Required option '%s' not found",@_)}
@@ -31,7 +32,7 @@ sub _invalid_splat_defaults {sprintf("Argument to %s must be a hash or hash refe
 
 # keep this last;
 for (keys %t::ErrorMessages::) {
-    push @EXPORT, $_ if $_ =~ "^_";
+    push @t::ErrorMessages::EXPORT, $_ if $_ =~ "^_";
 }
 
 1; 
