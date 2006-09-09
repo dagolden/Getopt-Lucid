@@ -21,7 +21,7 @@ my $VALID_SHORT     = qr/-[$VALID_CHAR]/;
 my $VALID_BARE      = qr/[$VALID_CHAR]+/;
 my $VALID_NAME      = qr/$VALID_LONG|$VALID_SHORT|$VALID_BARE/;
 my $SHORT_BUNDLE    = qr/-[$VALID_CHAR]{2,}/;
-my $CAPTURE_NEG     = qr/(?:--)?no-(.*)/;
+my $NEGATIVE        = qr/(?:--)?no-/;
 
 my @valid_keys = qw( name type required default nocase valid needs canon );
 my @valid_types = qw( switch counter parameter list keypair);
@@ -433,7 +433,7 @@ sub getopt {
         last if $raw =~ /^--$/;
         my ($orig, $val) = _split_equals($self, $raw);
         next if _unbundle($self, $orig, $val);
-        $neg++ if $orig =~ s/^$CAPTURE_NEG$/$1/;
+        $neg++ if $orig =~ s/^$NEGATIVE(.*)$/$1/;
         my $arg = _find_arg($self, $orig);
         if ( $arg ) {
             $self->{seen}{$arg}++;
@@ -696,13 +696,12 @@ sub _find_arg {
 
 sub _keypair {
 	my ($self, $arg, $val, $neg) = @_;
-    my ($value, $key, $data);
+    my ($key, $data);
     if ($neg) {
-        $value = $val;
-        $key = $data = undef;
+        $key = $val;
     }
     else {
-        $value = defined $val ? $val : shift @{$self->{target}};
+        my $value = defined $val ? $val : shift @{$self->{target}};
         throw_argv("Badly formed keypair for '$self->{spec}{$arg}{canon}'")
             unless $value =~ /[^=]+=.+/;
         ($key, $data) = ( $value =~ /^([^=]*)=(.*)$/ ) ;
@@ -725,7 +724,7 @@ sub _list {
     }
     else {
         $value = defined $val ? $val : shift @{$self->{target}};
-        $value =~ s/^$CAPTURE_NEG$/$1/ if ! defined $val;
+        $value =~ s/^$NEGATIVE(.*)$/$1/ if ! defined $val;
         throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
             if ! defined $val and _find_arg($self, $value);
         throw_argv("Invalid list option $self->{spec}{$arg}{canon} = $value")
@@ -746,7 +745,7 @@ sub _parameter {
     }
     else {
         $value = defined $val ? $val : shift @{$self->{target}};
-        $value =~ s/^$CAPTURE_NEG$/$1/ if ! defined $val;
+        $value =~ s/^$NEGATIVE(.*)$/$1/ if ! defined $val;
         throw_argv("Parameter can't be repeated: $self->{spec}{$arg}{canon}=$value")
             if $self->{seen}{$arg} > 1;
         throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
@@ -808,12 +807,19 @@ sub _recalculate_options {
                 last; 
             };
             /list/      && do { 
-                if ($neg) {  $result{$strip} = [] }
+                if ($neg) {  
+                    $result{$strip} = $value ? 
+                        [ grep { $_ ne $value } @{$result{$strip}} ] :
+                        []; 
+                }
                 else { push @{$result{$strip}}, $value }
                 last; 
             };
             /keypair/   && do { 
-                if ($neg) { $result{$strip} = {} }
+                if ($neg) { 
+                    if ($value->[0]) { delete $result{$strip}{$value->[0]} }
+                    else { $result{$strip} = {} } 
+                }
                 else { $result{$strip}{$value->[0]} = $value->[1]}; 
                 last; 
             };
@@ -875,7 +881,7 @@ sub _set_defaults {
 sub _split_equals {
 	my ($self,$raw) = @_;
     my ($arg,$val);
-    if ( $raw =~ /^($VALID_NAME|$SHORT_BUNDLE)=(.*)/ ) {
+    if ( $raw =~ /^($NEGATIVE?$VALID_NAME|$SHORT_BUNDLE)=(.*)/ ) {
         $arg = $1;
         $val = $2;
     } else {

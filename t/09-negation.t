@@ -35,7 +35,7 @@ BEGIN {
             Counter("verbose|v")->default(2),
             Param("file|f")->default("foo.txt"),
             List("lib|l")->default(qw( /var /tmp )),
-            Keypair("def|d")->default({os => 'linus', arch => 'i386'}),
+            Keypair("def|d")->default({os => 'linux', arch => 'i386'}),
         ],
         cases => [
             { 
@@ -61,6 +61,17 @@ BEGIN {
                     "def" => {},
                 },
                 desc    => "bareword-form negate everything"
+            },          
+            { 
+                argv    => [ qw( no-lib=/var --no-def=os ) ],
+                result  => { 
+                    "test" => 1, 
+                    "verbose" => 2,
+                    "file" => "foo.txt",
+                    "lib" => [qw( /tmp )],
+                    "def" => { arch => "i386" },
+                },
+                desc    => "negate list item and keypair key"
             },          
             # test negate specific list item or keypair key
             # test no-switch, switch (shouldn't complain about repeats)
