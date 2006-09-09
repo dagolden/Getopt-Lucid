@@ -106,7 +106,7 @@ Validation of options with regexes or subroutines
 
 =item *
 
-Negation of options
+Negation of options on the command line
 
 =item *
 
@@ -396,7 +396,7 @@ behind any unrecognized elements in the array.  If an element consisting solely
 of two-dashes ("--") is found, array scanning is terminated at that point.
 Any options found during scanning are applied in order.  E.g.:
 
-  @ARGV(qw( --lib /tmp --lib /var ));
+  @ARGV = qw( --lib /tmp --lib /var );
   my $opt = Getopt::Lucid->getopt( [ List("lib") ] );
   print join ", " $opt->lib;
   # prints "/tmp, /var"
@@ -425,7 +425,7 @@ command aliases who wish to "switch off" options in the alias.  E.g, in unix:
   $ alias wibble = wibble.pl --verbose
   $ wibble --no-verbose
   
-  # @ARGV would contains ( "--verbose", "--no-verbose" )
+  # @ARGV would contain ( "--verbose", "--no-verbose" )
 
 This also may have applications in post-processing configuration files (see
 L</Managing Defaults and Config Files>).
@@ -496,7 +496,7 @@ With this approach, the resulting option set is always the result of applying
 options (or negations) from the command-line array to a set of default-values.  Users have 
 complete freedom to apply whatever precedence rules they wish to the default
 values and may even change default values after the command-line array is 
-processed.
+processed without losing the options given on the command line.
 
 Getopt::Lucid provides several functions to assist in manipulating default
 values:
@@ -526,10 +526,42 @@ specification
 
 =back
 
-
 =head2 Exceptions and Error Handling
 
-DETAILS TO BE WRITTEN
+Getopt::Lucid uses L<Exception::Class> for exceptions.  When a major error
+occurs, Getopt::Lucid will die and throw one of three Exception::Class 
+subclasses:
+
+=over
+
+=item *
+
+C<Getopt::Lucid::Exception::Usage> -- thrown when Getopt::Lucid methods are
+called incorrectly
+
+=item *
+
+C<Getopt::Lucid::Exception::Spec> -- thrown when the specification array 
+contains incorrect or invalid data
+
+=item *
+
+C<Getopt::Lucid::Exception::ARGV> -- thrown when the command-line is
+processed and fails to pass specified validation, requirements, or is 
+otherwise determined to be invalid
+
+=back
+
+These exception may be caught using an C<eval> block and allow the calling
+program to respond differently to each class of exception.
+
+  my $opt;
+  eval { $opt = Getopt::Lucid->getopt( \@spec ) };
+  if ($@) {
+    print "$@\n" && print_usage() && exit 1
+      if ref $@ eq 'Getopt::Lucid::Exception::ARGV';
+    ref $@ ? $@->rethrow : die $@;
+  }
 
 =head2 Ambiguous Cases and Gotchas
 
@@ -601,15 +633,14 @@ sub new {
 Takes a hash or hash reference of new default values, modifies the stored
 defaults, recalculates the result of processing the command line with the
 revised defaults, and returns a hash with the resulting options.  Each
-key/value pair in the passed hash is added to the stored defaults.  For switch
-and parameter options, the value in the passed hash will overwrite any
-pre-existing value.  For counter options, the value is added to any
-pre-existing value.  For list options, the value (or values, if the value is an
+key/value pair in the passed hash is added to the stored defaults.  For Switch
+and Param options, the value in the passed hash will overwrite any
+pre-existing value.  For Counter options, the value is added to any
+pre-existing value.  For List options, the value (or values, if the value is an
 array reference) will be pushed onto the end of the list of existing values.
-For keypair options, the keypairs will be added to the existing hash,
+For Keypair options, the keypairs will be added to the existing hash,
 overwriting existing key/value pairs (just like merging two hashes).  Keys
-which are not valid "barewords" derived from the options specification will be
-ignored.
+which are not valid names from the options specification will be ignored.
 
 =cut
 
@@ -663,10 +694,9 @@ sub append_defaults {
 
  %defaults = $opt->defaults();
 
-Returns a hash containing current default values.  Keys are "bareword" names
-from the option specification.  (i.e.  names without any leading dashes).  
-These defaults represent the baseline values that are modified by the parsed
-command line options.
+Returns a hash containing current default values.  Keys are names from the
+option specification (without any leading dashes).  These defaults represent
+the baseline values that are modified by the parsed command line options.
 
 =cut
 
@@ -747,8 +777,8 @@ Takes a hash or hash reference of new default values, modifies the stored
 defaults, recalculates the result of processing the command line with the
 revised defaults, and returns a hash with the resulting options.  Each
 key/value pair in the passed hash is added to the stored defaults, overwriting
-any pre-existing value.  Keys which are not valid "barewords" derived from the
-options specification will be ignored.
+any pre-existing value.  Keys which are not valid names from the options
+specification will be ignored.
 
 =cut
 
@@ -795,9 +825,8 @@ sub merge_defaults {
 
  @names = $opt->names();
 
-Returns the list of "bareword" names corresponding to the names in the options
-specification.  Each name represents a key in the hash of options provided by
-C<options>.
+Returns the list of names in the options specification.  Each name represents a
+key in the hash of options provided by C<options>.
 
 =cut
 
@@ -839,8 +868,8 @@ Takes a hash or hash reference of new default values, replaces the stored
 defaults, recalculates the result of processing the command line with the
 revised defaults, and returns a hash with the resulting options.  Each
 key/value pair in the passed hash replaces existing defaults, including those
-given in the option specifications.  Keys which are not valid "barewords"
-derived from the options specification will be ignored.
+given in the option specifications.  Keys which are not valid names from the
+option specification will be ignored.
 
 =cut
 

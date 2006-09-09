@@ -4,13 +4,13 @@ TODO list for Perl module Getopt::Lucid
 # Features to add
 #--------------------------------------------------------------------------#
 
-- create "handler" spec option with coderef to denote a potential command
+- create spec modifier with coderef to denote a potential command
 - commands() function to give list of command seen on command line
 - dispatch() function to call, in order, the list of commands
-- Usage information (produced by separate function)
-- Pod and pod coverage
+- Usage information in spec and printed by a separate function
 - For keypair validation, pass *both* key and value to a validation 
   subroutine (allowing custom validation by key)
+- Callbacks (?)
 
 #--------------------------------------------------------------------------#
 # Bugfixes/technical/other
