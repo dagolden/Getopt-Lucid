@@ -5,9 +5,9 @@ WriteMakefile
           'NAME' => 'Getopt::Lucid',
           'VERSION_FROM' => 'lib/Getopt/Lucid.pm',
           'PREREQ_PM' => {
+                           'Clone::Any' => '1.01',
                            'Exception::Class' => '1.2',
                            'Exception::Class::TryCatch' => '1.05',
-                           'Test::Deep' => '0.087',
                            'Test::Exception' => '0.2',
                            'Test::More' => '0.47'
                          },

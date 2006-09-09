@@ -1,76 +1,238 @@
 NAME
-    Getopt::Lucid - Put abstract here
+    Getopt::Lucid - Clear, readable syntax for command line processing
 
 SYNOPSIS
-      use Getopt::Lucid;
-      blah blah blah
+      # simple option specifications with aliases
+  
+      @specs = (
+        Switch("version|V"),    
+        Counter("verbose|v"), 
+        Param("config|C"), 
+        List("lib|l|I"),
+        Keypair("define"),
+        Switch("help|h")
+      );
+  
+      $opt = Getopt::Lucid->getopt( \@specs );
+  
+      $verbosity = $opt->get_verbose;
+      @libs = $opt->get_lib;
+      %defs = $opt->get_define;
+  
+      # advanced specification options
+
+      @adv_spec = (
+        Param("input")->required,       # required
+        Param("mode")->default("tcp"),  # defaults
+        Param("host")->needs("port"),   # dependencies
+        Param("port", qr/\d+/ ),        # regex validation
+        Param("config", sub { -r } ),   # custom validation
+        Param("help")->anycase,         # case insensitivity
+      );
+  
+      # example with additional defaults (with Config::Simple)
+
+      if ( -r $opt->get_config ) {
+        $config = Config::Simple->new($opt->get_config);
+        $opt->merge_defaults( $config->vars ); 
+      }
 
 DESCRIPTION
+    The goal of this module is providing good code readability and clarity
+    of intent for command-line option processing. While readability is a
+    subjective standard, Getopt::Lucid relies on a more verbose,
+    plain-English option specification as compared against the more symbolic
+    approach of Getopt::Long. Key features include:
+
+    * Five option types: switches, counters, parameters, lists, and keypairs
+    * Three option styles: long, short (including bundled), and bare
+    (without dashes)
+    * Specification of defaults, required options and option dependencies
+    * Validation of options with regexes or subroutines
+    * Support for parsing any array, not just the default @ARGV
+    * Easy incorporation of external defaults (e.g. from a config file) with
+    proper precedence
 USAGE
-  "new"
-     $rv = new( \%parameters );
+  Option Styles and "Strictness"
 
-    Description...
+    Getopt::Lucid support three kinds of option styles: long-style
+    ("--foo"), short-style ("-f") and bareword style ("foo"). Short-style
+    options are automatically unbundled during command line processing if a
+    single dash is followed by more than one letter ("-xzf").
 
-  "getopt"
-     $rv = getopt( \%parameters );
+  Options Names, Aliases, and Styles
 
-    Description...
+    Each option is identified with a string consisting of the option "name"
+    followed by zero or more "aliases", with an alias (and each subsequent
+    alias) separated by a vertical bar character. E.g.:
 
-  "_split_equals"
-     $rv = _split_equals( \%parameters );
+     "libs|l|I"
 
-    Description...
+    Names and aliases must be valid perl words -- alphanumeric plus
+    underscore.
 
-  "_unbundle"
-     $rv = _unbundle( \%parameters );
+  Option Specification Constructors
 
-    Description...
+    Options specifications are given in an array. Entries in the array must
+    be created with one of five special constructor functions that return a
+    specification object. The form of the constructor is:
 
-  "_check_required"
-     $rv = _check_required( \%parameters );
+     Param( NAME_ARGUMENT, VALIDATION_ARGUMENTS );
+ 
+    *   `Switch'
 
-    Description...
+    *   `Counter'
 
-  "_switch"
-     $rv = _switch( \%parameters );
+    *   `Param'
 
-    Description...
+    *   `List'
 
-  "_counter"
-     $rv = _counter( \%parameters );
+    *   `Keypair'
 
-    Description...
+    Specification can be further modified with the following methods, which
+    can be chained as necessary:
 
-  "_parameter"
-     $rv = _parameter( \%parameters );
+    *   `default'
 
-    Description...
+    *   `required'
 
-  "_list"
-     $rv = _list( \%parameters );
+    *   `needs'
 
-    Description...
+    *   `anycase'
 
-  "_keypair"
-     $rv = _keypair( \%parameters );
+  Validation
 
-    Description...
+    DETAILS TO BE WRITTEN
 
-  "_set_defaults"
-     $rv = _set_defaults( \%parameters );
+  Parsing the Command Line
 
-    Description...
+    DETAILS TO BE WRITTEN
 
-  "_parse_spec"
-     $rv = _parse_spec( \%parameters );
+  Accessors/Mutators
 
-    Description...
+    After reading and parsing an array containing options with a
+    Getopt::Lucid option, the values of the options may be read or modified
+    using accessors/mutators of the form "get_BARENAME" and "set_BARENAME",
+    where BARENAME represents the option name provided in the specification
+    without any leading dashes. E.g.
 
-  "_validate_spec"
-     $rv = _validate_spec( \%parameters );
+     %spec = { "--test|-t" => { type => "switch" } };
+     $gl = Getopt::Long->getopt( \%spec );
+     print $gl->get_test ? "True" : "False";
+     $gl->set_test(1);
 
-    Description...
+  Managing Defaults and Config Files
+
+    DETAILS TO BE WRITTEN
+
+  Exceptions and Error Handling
+
+    DETAILS TO BE WRITTEN
+
+METHODS
+  `new()'
+
+     $opt = Getopt::Lucid->new( \@option_spec );
+     $opt = Getopt::Lucid->new( \@option_spec, \@option_array );
+
+    Creates a new Getopt::Lucid object. An array reference to an option spec
+    is required as an argument. (See USAGE for a description of the object
+    spec). By default, objects will be set to read @ARGV for command line
+    options. An optional second argument with a reference to an array will
+    use that array for option processing instead. For typical cases, users
+    will likely prefer to call `getopt' instead, which creates a new object
+    and parses the command line with a single function call.
+
+  `append_defaults()'
+
+     %options = append_defaults( %config_hash );
+     %options = append_defaults( \%config_hash );
+
+    Takes a hash or hash reference of new default values, modifies the
+    stored defaults, recalculates the result of processing the command line
+    with the revised defaults, and returns a hash with the resulting
+    options. Each key/value pair in the passed hash is added to the stored
+    defaults. For switch and parameter options, the value in the passed hash
+    will overwrite any pre-existing value. For counter options, the value is
+    added to any pre-existing value. For list options, the value (or values,
+    if the value is an array reference) will be pushed onto the end of the
+    list of existing values. For keypair options, the keypairs will be added
+    to the existing hash, overwriting existing key/value pairs (just like
+    merging two hashes). Keys which are not valid "barewords" derived from
+    the options specification will be ignored.
+
+  `defaults()'
+
+     %defaults = $opt->defaults();
+
+    Returns a hash containing current default values. Keys are "bareword"
+    names from the option specification. (i.e. names without any leading
+    dashes). These defaults represent the baseline values that are modified
+    by the parsed command line options.
+
+  `getopt()'
+
+     %options = $opt->getopt();
+     $opt = Getopt::Lucid->getopt( \@option_spec );
+     $opt = Getopt::Lucid->getopt( \@option_spec, \@option_array );
+
+    Parses the command line array (@ARGV by default). When called as an
+    object method, it takes no arguments and returns a hash containing the
+    options parsed. When called as a class function, `getopt' takes the same
+    arguments as `new', calls `new' to create an object before parsing the
+    command line, and returns the new object.
+
+  `merge_defaults()'
+
+     %options = merge_defaults( %config_hash );
+     %options = merge_defaults( \%config_hash );
+
+    Takes a hash or hash reference of new default values, modifies the
+    stored defaults, recalculates the result of processing the command line
+    with the revised defaults, and returns a hash with the resulting
+    options. Each key/value pair in the passed hash is added to the stored
+    defaults, overwriting any pre-existing value. Keys which are not valid
+    "barewords" derived from the options specification will be ignored.
+
+  `names()'
+
+     @names = $opt->names();
+
+    Returns the list of "bareword" names corresponding to the names in the
+    options specification. Each name represents a key in the hash of options
+    provided by `options'.
+
+  `options()'
+
+     %options = $opt->options();
+
+    Returns a deep copy of the options hash. Before `getopt' is called, its
+    behavior is undefined. After `getopt' is called, this will return the
+    result of modifying the defaults with the results of command line
+    processing.
+
+  `replace_defaults'
+
+     %options = replace_defaults( %config_hash );
+     %options = replace_defaults( \%config_hash );
+
+    Takes a hash or hash reference of new default values, replaces the
+    stored defaults, recalculates the result of processing the command line
+    with the revised defaults, and returns a hash with the resulting
+    options. Each key/value pair in the passed hash replaces existing
+    defaults, including those given in the option specifications. Keys which
+    are not valid "barewords" derived from the options specification will be
+    ignored.
+
+  `reset_defaults()'
+
+     %options = reset_defaults();
+
+    Resets the stored defaults to the original values from the options
+    specification, recalculates the result of processing the command line
+    with the restored defaults, and returns a hash with the resulting
+    options. This undoes the effect of a `merge_defaults' or `add_defaults'
+    call.
 
 INSTALLATION
     The following commands will build, test, and install this module:
@@ -82,8 +244,7 @@ INSTALLATION
 
 BUGS
     Please report bugs using the CPAN Request Tracker at
-    http://rt.cpan.org/NoAuth/Bugs.html?Dist=/home/david/projects/Getopt-Luc
-    id/Getopt-Lucid
+    http://rt.cpan.org/NoAuth/Bugs.html?Dist=Getopt-Lucid
 
 AUTHOR
     David A Golden (DAGOLDEN)
@@ -102,5 +263,9 @@ COPYRIGHT
     with this module.
 
 SEE ALSO
-    perl(1).
+    *   Getopt::Lucid::Cookbook
+
+    *   Getopt::Long
+
+    *   Config::Simple
 
