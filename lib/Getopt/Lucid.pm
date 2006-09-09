@@ -88,22 +88,28 @@ Key features include:
 =over
 
 =item *
+
 Five option types: switches, counters, parameters, lists, and keypairs
 
 =item * 
+
 Three option styles: long, short (including bundled), and bare (without
 dashes)
 
 =item *
+
 Specification of defaults, required options and option dependencies
 
 =item *
+
 Validation of options with regexes or subroutines
 
 =item *
+
 Support for parsing any array, not just the default @ARGV
 
 =item *
+
 Incorporation of external defaults (e.g. from a config file) with
 user control of precedence
 
@@ -139,10 +145,14 @@ dashes.  E.g.:
 
 =over 
 
-=item * Both "foo" and "--foo" as names in the specification may be read from
+=item * 
+
+Both "foo" and "--foo" as names in the specification may be read from
 the command line as either "--foo" or "foo"
 
-=item * The specification name "f" may be read from the command line as "--f",
+=item * 
+
+The specification name "f" may be read from the command line as "--f",
 "-f", or just "f"
 
 =back
@@ -159,23 +169,63 @@ and "-h" are valid for use on the command line.
 
 =head2 Option Specification Constructors
 
-Options specifications are given in an array.  Entries in the array must be
-created with one of five special constructor functions that return a
-specification object.  The form of the constructor is:
+Options specifications are provided to Getopt::Lucid in an array.  Entries in
+the array must be created with one of five special constructor functions that
+return a specification object.  These constructor functions may be imported
+either individually or as a group using the import tag ":all" (e.g. 
+C<use Getopt::Lucid qw(:all);>).
+
+The form of the constructor is:
 
  Param( NAME_ARGUMENT, VALIDATION_ARGUMENT(S) );
  
+The constructor name indicates the type of option.  The name argument is a string
+with the names and aliases separated by vertical bar characters.  Validation
+arguments may or may not be relevant, depending on the type of option.  (See
+L</Validation> below.)  
+
+The five option specification constructors are:
+
 =over
 
-=item * C<Switch>
+=item * 
 
-=item * C<Counter>
+C<Switch()> -- a true/false value.  Defaults to false.  The appearance
+of an option of this type on the command line sets it to true.
 
-=item * C<Param>
+=item * 
 
-=item * C<List>
+C<Counter()> -- a numerical counter.  Defaults to 0.  The appearance 
+of an option of this type on the command line increments the counter by one.
 
-=item * C<Keypair>
+=item * 
+
+C<Param()> -- a variable taking an argument.  Defaults to "" (the empty
+string).  When an option of this type appears on the command line, the value of
+the option is set in one of two ways -- appended with an equals sign or from the
+next argument on the command line:
+
+  --name=value
+  --name value
+
+In the case where white space is used to separate the option name and the 
+value, if the value looks like an option, an exception will be thrown:
+
+  --name --value        # throws an exception
+
+=item * 
+
+C<List()> -- like C<Param()> but arguments are pushed onto a list.
+The default list is empty.
+
+=item * 
+
+C<Keypair()> -- a variable taking an argument pair, which are added
+to a hash.  Arguments are handled as with C<Param()>, but the argument itself
+must have a key and value joined by an equals sign.
+
+  --name=key=value
+  --name key=value
 
 =back
 
@@ -208,20 +258,65 @@ sub Keypair {
 
 =pod 
 
-Specification can be further modified with the following methods,
-which can be chained as necessary:
+An option specification can be further modified with the following methods,
+each of which return the object modified so that modifier chaining is
+possible:
 
 =over
 
-=item * C<default>
+=item * 
 
-=item * C<required>
+C<default()> -- changes the default for the option to the argument(s) of
+C<default()>.  List and hashes can take either a list or a reference to an
+array or hash, respectively.
 
-=item * C<needs>
+  @spec = (
+    Switch("debug")->default(1),
+    Counter("verbose")->default(3),
+    Param("config")->default("/etc/profile"),
+    List("dirs")->default(qw( /var /home )),
+    Keypair("define")->default( arch => "i386" ),
+  );
+  
+=item * 
 
-=item * C<anycase>
+C<required()> -- indicates that the option I<must> appear on the command
+line or else an exception is thrown.  No argument is needed.
+
+  @spec = (
+    Param("input")->required(),
+  );
+
+=item * 
+
+C<needs()> -- takes as an argument a list of option names or aliases of
+dependencies.  If the option this modifies appears on the command line, each of
+the options given as an argument must appear on the command line as well or an
+exception is thrown. 
+
+  @spec = (
+    Param("input")->needs("output"),
+    Param("output),
+  );
+
+=item * 
+
+C<anycase()> -- indicates that the associated option names/aliases may appear
+on the command line in lowercase, uppercase, or any mixture of the two.  No
+argument is needed.
+
+  @spec = (
+    Switch("help|h")->anycase(),    # "Help", "HELP", etc.
+  );
 
 =back
+
+Modifiers may be chained to allow multiple modifiers.  E.g.: 
+
+  @spec = (
+    Param("input")->default("/dev/random")->needs("output"),
+    Param("output)->default("/dev/null"),
+  );
 
 =cut
 
@@ -260,7 +355,29 @@ package Getopt::Lucid;
 
 =head2 Validation
 
-DETAILS TO BE WRITTEN
+For Param, List, and Keypair option types, the constructor can be passed an
+optional validation specification.  Values provided on the command line will be
+validated according to the specification or an exception will be thrown.  A
+validation specification can be either a regular expression, or a reference to
+a subroutine.  Keypairs take up to two validation specifiers.  The first is
+applied to keys and the second is applied to values; either can be left
+undef to ignore validation.  (More complex validation of specific values
+for specific keys must be done manually.)
+
+  @spec = (
+    Param("copies", "\d+"),
+    Param("scaling", qr/\d+/),
+    Param("input", sub { -r } ),
+    Keypair("define, "os|arch", "\w+"),
+  );
+
+For validation subroutines, the value found on the command line is passed as
+the first element of C<@_>, and C<$_> is also set equal to the first element.
+(N.B. Changing C<$_> will not change the value that is captured.)  The value
+validates if the subroutine returns a true value.
+
+For validation with regular expressions, consider using L<Regexp::Common>
+for a ready library of validation options.
 
 =head2 Parsing the Command Line
 
@@ -274,10 +391,15 @@ accessors/mutators of the form "get_BARENAME" and "set_BARENAME", where
 BARENAME represents the option name provided in the specification without any
 leading dashes.  E.g.
 
- %spec = { "--test|-t" => { type => "switch" } };
- $gl = Getopt::Long->getopt( \%spec );
- print $gl->get_test ? "True" : "False";
- $gl->set_test(1);
+  @spec = (
+    Switch("--test|-t"),
+  );
+  
+  $opt = Getopt::Long->getopt( \@spec );
+  print $opt->get_test ? "True" : "False";
+  $opt->set_test(1);
+
+ADD SET_ NOT RECOMMENDED
 
 =head2 Managing Defaults and Config Files
 
@@ -289,7 +411,9 @@ DETAILS TO BE WRITTEN
 
 =head2 Ambiguous Cases and Gotchas
 
-I<One-character aliases and anycase>
+=over
+
+=item I<One-character aliases and anycase>
 
   @spec = (
     Counter("verbose|v")->anycase,
@@ -303,6 +427,8 @@ However, what if the command line has "-v" or even "-v -V"?  In this case, the
 rule is that exact case matches are used before case-insensitive matches are
 searched.  Thus, "-v" can only match "verbose", despite the C<anycase>
 modification, and likewise "-V" can only match "version".
+
+=back
 
 =head1 METHODS
 
@@ -318,7 +444,7 @@ modification, and likewise "-V" can only match "version".
  $opt = Getopt::Lucid->new( \@option_spec, \@option_array );
 
 Creates a new Getopt::Lucid object.  An array reference to an option spec is
-required as an argument.  (See L<USAGE> for a description of the object spec).
+required as an argument.  (See L</USAGE> for a description of the object spec).
 By default, objects will be set to read @ARGV for command line options. An
 optional second argument with a reference to an array will use that array for
 option processing instead.  For typical cases, users will likely prefer
@@ -864,7 +990,7 @@ sub _regex_or_code {
     my ($value,$valid) = @_;
     return 1 unless defined $valid;
 	if ( ref($valid) eq 'CODE' ) {
-        local *_ = \$value;
+        local $_ = $value;
         return $valid->($value);
     } else {
         return $value =~ /^$valid$/;
@@ -1063,13 +1189,17 @@ __END__
 
 =over
 
+=item * 
+
+L<Config::Simple>
+
 =item *
 
 L<Getopt::Long>
 
-=item * 
+=item *
 
-L<Config::Simple>
+L<Regexp::Common>
 
 =back
 

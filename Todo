@@ -9,11 +9,16 @@ TODO list for Perl module Getopt::Lucid
 - dispatch() function to call, in order, the list of commands
 - Usage information (produced by separate function)
 - Pod and pod coverage
+- For keypair validation, pass *both* key and value to a validation 
+  subroutine (allowing custom validation by key)
 
 #--------------------------------------------------------------------------#
 # Bugfixes/technical/other
 #--------------------------------------------------------------------------#
 
 - write cookbook
-- refactor ugly code
+- refactor ugly code (module and tests)
+- Allow keypairs to escape an equals sign for use in keys(?) -- e.g.
+  "define is\==value" giving "is=" => "value" (Does anyone really need
+  this?)
 
