@@ -98,7 +98,7 @@ while ( $trial = shift @good_specs ) {
             my $gl = Getopt::Lucid->new($trial->{spec}, \@cmd_line);
             @cmd_line = @{$case->{argv}};
             my %opts;
-            try eval { %opts = $gl->getopt };
+            try eval { %opts = $gl->getopt->options };
             catch my $err;
             if (defined $case->{exception}) { # expected
                 ok( $err && $err->isa( $case->{exception} ), 

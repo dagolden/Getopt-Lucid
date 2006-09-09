@@ -66,7 +66,7 @@ SKIP: {
     @cmd_line = @{$case->{argv}};
     my $expect = $case->{result};
     my %opts;
-    try eval { %opts = $gl->getopt };
+    try eval { %opts = $gl->getopt->options };
     catch my $err;
     if ($err) {
         fail( "$case->{desc} threw an exception")

@@ -38,7 +38,9 @@ Getopt::Lucid - Clear, readable syntax for command line processing
 
 =head1 SYNOPSIS
 
-  # simple option specifications with aliases
+  use Getopt::Lucid qw( :all );
+
+  # basic option specifications with aliases
   
   @specs = (
     Switch("version|V"),    
@@ -55,7 +57,9 @@ Getopt::Lucid - Clear, readable syntax for command line processing
   @libs = $opt->get_lib;
   %defs = $opt->get_define;
   
-  # advanced specification options
+  %all_options = $opt->options;
+  
+  # advanced option specifications
 
   @adv_spec = (
     Param("input")->required,       # required
@@ -72,7 +76,6 @@ Getopt::Lucid - Clear, readable syntax for command line processing
     $config = Config::Simple->new($opt->get_config);
     $opt->merge_defaults( $config->vars ); 
   }
-
 
 =head1 DESCRIPTION
 
@@ -108,26 +111,51 @@ user control of precedence
 
 =head1 USAGE
 
-=head2 Option Styles and "Strictness"
+=head2 Option Styles, Naming and "Strictness"
 
 Getopt::Lucid support three kinds of option styles: long-style ("--foo"), 
 short-style ("-f") and bareword style ("foo").  Short-style options
 are automatically unbundled during command line processing if a single dash
-is followed by more than one letter ("-xzf").
+is followed by more than one letter (e.g. "-xzf" becomes "-x -z -f" ).
 
-MORE TO BE WRITTEN
+Each option is identified in the specification with a string consisting of the
+option "name" followed by zero or more "aliases", with any alias (and each
+subsequent alias) separated by a vertical bar character.  E.g.:
 
-=head2 Options Names, Aliases, and Styles
-
-Each option is identified with a string consisting of the option "name"
-followed by zero or more "aliases", with an alias (and each subsequent alias)
-separated by a vertical bar character.  E.g.:
-
- "libs|l|I"
-
+  "lib|l|I" means name "lib", alias "l" and alias "I"
+ 
 Names and aliases must be valid perl words -- alphanumeric plus underscore.
+While names and aliases are interchangeable when provided on the command line,
+the "name" itself is used with the accessors for each option (see 
+L</Accessors and Mutators>).  
 
-MORE TO BE WRITTEN
+Any of the names and aliases in the specification may be given in any of the
+three styles.  By default, Getopt::Lucid works in "magic" mode, in which option
+names or aliases may be specified with or without leading dashes, and will be
+parsed from the command line whether or not they have corresponding dashes.
+Single-character names or aliases may be read with no dash, one dash or two
+dashes.  Multi-character names or aliases must have either no dashes or two
+dashes.  E.g.:
+
+=over 
+
+=item * Both "foo" and "--foo" as names in the specification may be read from
+the command line as either "--foo" or "foo"
+
+=item * The specification name "f" may be read from the command line as "--f",
+"-f", or just "f"
+
+=back
+
+In practice, this means that the specification need not use dashes, but if
+used on the command line, they will be treated appropriately.
+
+Alternatively, Getopt::Lucid can operate in "strict" mode by setting 
+C<$Getopt::Lucid::STRICT> to a true value.  In strict mode, option names
+and aliases may still be specified in any of the three styles, but they 
+will only be parsed from the command line if they are used in exactly
+the same style.  E.g., given the name and alias "--help|-h", only "--help"
+and "-h" are valid for use on the command line.
 
 =head2 Option Specification Constructors
 
@@ -135,7 +163,7 @@ Options specifications are given in an array.  Entries in the array must be
 created with one of five special constructor functions that return a
 specification object.  The form of the constructor is:
 
- Param( NAME_ARGUMENT, VALIDATION_ARGUMENTS );
+ Param( NAME_ARGUMENT, VALIDATION_ARGUMENT(S) );
  
 =over
 
@@ -238,7 +266,7 @@ DETAILS TO BE WRITTEN
 
 DETAILS TO BE WRITTEN
 
-=head2 Accessors/Mutators
+=head2 Accessors and Mutators
 
 After reading and parsing an array containing options with a Getopt::Lucid
 option, the values of the options may be read or modified using
@@ -270,11 +298,11 @@ I<One-character aliases and anycase>
 
 Consider the spec above.  By specifying C<anycase> on these, "verbose",
 "Verbose", "VERBOSE" are all acceptable, as are "version", "Version" and so on.
-(Including long-form versions of these, too.)  However, what if the command
-line has "-v" or even "-v -V"?  In this case, the rule is that exact case
-matches are used before case-insensitive matches are searched.  Thus, "-v" can
-only match "verbose", despite the C<anycase> modification, and likewise "-V"
-can only match "version".
+(Including long-form versions of these, too, if "magic" mode is used.)
+However, what if the command line has "-v" or even "-v -V"?  In this case, the
+rule is that exact case matches are used before case-insensitive matches are
+searched.  Thus, "-v" can only match "verbose", despite the C<anycase>
+modification, and likewise "-V" can only match "version".
 
 =head1 METHODS
 
@@ -406,23 +434,20 @@ sub defaults {
 
 =head2 C<getopt()>
 
- %options = $opt->getopt();
  $opt = Getopt::Lucid->getopt( \@option_spec );
  $opt = Getopt::Lucid->getopt( \@option_spec, \@option_array );
+ $opt->getopt();
 
-Parses the command line array (@ARGV by default).  When called as an object
-method, it takes no arguments and returns a hash containing the options parsed.
-When called as a class function, C<getopt> takes the same arguments as C<new>,
-calls C<new> to create an object before parsing the command line, and returns
-the new object.
+Parses the command line array (@ARGV by default).  When called as a class
+function, C<getopt> takes the same arguments as C<new>, calls C<new> to create
+an object before parsing the command line, and returns the new object.  When
+called as an object method, it takes no arguments and returns itself.
 
 =cut
 
 sub getopt {
 	my ($self,$spec,$target) = @_;
-    my $return_self;
     if ( $self eq 'Getopt::Lucid' ) {
-        $return_self = 1;
         throw_usage("Getopt::Lucid->getopt() requires an option specification array reference")
             unless ref($spec) eq 'ARRAY';
         $self = new($self,$spec,$target)
@@ -457,7 +482,7 @@ sub getopt {
     _check_prereqs($self);
     _recalculate_options($self);
     @{$self->{target}} = (@passthrough, @{$self->{target}});
-    return $return_self ? $self : $self->options;
+    return $self;
 }
 
 
