@@ -136,7 +136,7 @@ subsequent alias) separated by a vertical bar character.  E.g.:
 
   "lib|l|I" means name "lib", alias "l" and alias "I"
  
-Names and aliases must begin with an alphanumeric charactes, but subsequently
+Names and aliases must begin with an alphanumeric character, but subsequently
 may also include both underscore and dash.  (E.g. both "input-file" and
 "input_file" are valid.)  While names and aliases are interchangeable
 when provided on the command line, the "name" portion is used with the accessors

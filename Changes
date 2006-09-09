@@ -1,5 +1,8 @@
 Revision history for Perl module Getopt::Lucid
 
+0.13 in progress
+    - fixed typo in Pod
+
 0.12 Tue Sep 20 13:10:19 EDT 2005
     - added support for option names with GNU-style dashes; accessors
       substitute underscore for dashes. (Suggested by Steven Vasilogianis)
