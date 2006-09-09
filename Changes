@@ -1,0 +1,47 @@
+Revision history for Perl module Getopt::Lucid
+
+0.10 in progress
+    - Single character (alphanumeric) switches
+    - Exception-based error handling
+    - Specification validation
+    - Command-line validation against spec
+    - Bundled single-character switches
+    - Long-style (alphanumeric) switches
+    - Long/short/multiple switch aliases
+    - Keys in resulting option hash are names stripped of any leading dashes
+    - Option names/aliases must be unique
+    - Option termination string "--"
+    - Counters
+    - Parameters (w/o "=") (values can't be ambiguous)
+    - Parameters (w "=")
+    - Lists
+    - Pass through non-options (preserving order)
+    - Throw exceptions on unrecognized non-bareword options
+    - Check for valid and invalid option name characters
+    - Keypairs (e.g. "--define os=linux")
+    - Bareword options
+    - Required options
+    - Default values
+    - Case insensitivity
+    - Validation (regex)
+    - Validation (code subroutine)
+    - Dependencies
+    - parse other arrays than @ARGV
+    - names() function
+    - accessors for options in spec
+    - merge() function
+    - pass through single dash
+    - provide separate merge_default() and add_default() functions
+    - require option_spec for new()
+    - make getopt call new if called as a class function and return the object
+      not a hash of options
+    - provide defaults() and reset_defaults() functions
+    - rename push_defaults to append_defaults
+    - make sure merge_defaults ignores anything not in the spec
+    - implement replace_defaults()
+    - make *_defaults check that lists/keypairs are passing right type
+    - Support *_defaults() taking a hashref or a hash as input
+    - revamp argument spec to new, simpler format
+    - validation on lists (validate each value)
+    - validation on keypairs (simple validation for keys/values as a whole)
+  signify?)

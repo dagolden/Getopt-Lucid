@@ -1,0 +1,54 @@
+TODO list for Perl module Getopt::Lucid
+
+#--------------------------------------------------------------------------#
+# Features to add
+#--------------------------------------------------------------------------#
+
+- add more magic so args don't have to have "-" or "--"
+- add "strict" argument to use for less magic on names/aliases
+- create "handler" spec option with coderef to denote a potential command
+- commands() function to give list of command seen on command line
+- dispatch() function to call, in order, the list of commands
+- Negation (only for switch/counter/parameter longform): sets to zero/undef
+- Negation with = (for list/keypair longform):  removes matching element/key
+- Negation without = (for list/keypair longform): blanks entire list/hash
+- Usage information (produced by separate function)
+- Pod and pod coverage
+
+#--------------------------------------------------------------------------#
+# Issues to test/decide how to test
+#--------------------------------------------------------------------------#
+
+- -v and -V w/ nocase
+- $opt->get_? (disallow ?)
+
+#--------------------------------------------------------------------------#
+# API brainstorming
+#--------------------------------------------------------------------------#
+
+use Getopt::Lucid qw( helpful ); # helpful prints usage on ARGV errors
+
+$opt = Getopt::Lucid->new( \%spec, \@ARGV );
+$opt->getopt;
+
+$opt = Getopt::Lucid->getopt( \%spec ); (like G::L->new(\%spec)->getopt
+
+print $opt->get_NAME;
+$opt->set_NAME("foo");
+
+$opt->merge_defaults( \%config_file, \%config_hash );   
+
+$opt->dispatch; #e.g. Getopt::Lucid->getopt( \%spec )->dispatch;
+
+$opt->usage;  # e.g. print $opt->usage and exit if $opt->get_help;
+
+# example w/ Config::Simple
+
+$opt = Getopt::Lucid->getopt( \%spec );
+if (-r $opt->get_config) {
+    my $cfg = Config::Simple->new( $opt->get_config );
+    $opt->merge_default( $cfg->get_block("default") );
+    $opt->merge_defaults( $cfg->get_block($_) ) for ( $opt->commands );
+}
+$opt->dispatch;
+

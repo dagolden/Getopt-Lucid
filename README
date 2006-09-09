@@ -1,0 +1,106 @@
+NAME
+    Getopt::Lucid - Put abstract here
+
+SYNOPSIS
+      use Getopt::Lucid;
+      blah blah blah
+
+DESCRIPTION
+USAGE
+  "new"
+     $rv = new( \%parameters );
+
+    Description...
+
+  "getopt"
+     $rv = getopt( \%parameters );
+
+    Description...
+
+  "_split_equals"
+     $rv = _split_equals( \%parameters );
+
+    Description...
+
+  "_unbundle"
+     $rv = _unbundle( \%parameters );
+
+    Description...
+
+  "_check_required"
+     $rv = _check_required( \%parameters );
+
+    Description...
+
+  "_switch"
+     $rv = _switch( \%parameters );
+
+    Description...
+
+  "_counter"
+     $rv = _counter( \%parameters );
+
+    Description...
+
+  "_parameter"
+     $rv = _parameter( \%parameters );
+
+    Description...
+
+  "_list"
+     $rv = _list( \%parameters );
+
+    Description...
+
+  "_keypair"
+     $rv = _keypair( \%parameters );
+
+    Description...
+
+  "_set_defaults"
+     $rv = _set_defaults( \%parameters );
+
+    Description...
+
+  "_parse_spec"
+     $rv = _parse_spec( \%parameters );
+
+    Description...
+
+  "_validate_spec"
+     $rv = _validate_spec( \%parameters );
+
+    Description...
+
+INSTALLATION
+    The following commands will build, test, and install this module:
+
+     perl Build.PL
+     perl Build
+     perl Build test
+     perl Build install
+
+BUGS
+    Please report bugs using the CPAN Request Tracker at
+    http://rt.cpan.org/NoAuth/Bugs.html?Dist=/home/david/projects/Getopt-Luc
+    id/Getopt-Lucid
+
+AUTHOR
+    David A Golden (DAGOLDEN)
+
+    dagolden@cpan.org
+
+    http://dagolden.com/
+
+COPYRIGHT
+    Copyright (c) 2005 by David A Golden
+
+    This program is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
+    The full text of the license can be found in the LICENSE file included
+    with this module.
+
+SEE ALSO
+    perl(1).
+
