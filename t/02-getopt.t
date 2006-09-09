@@ -533,7 +533,7 @@ BEGIN {
     };
 
     push @good_specs, { 
-        label => "validate w/ regex",
+        label => "validate w/ numerical regex",
         spec  => [
             Counter("--verbose|-v")->default(1),
             Param("--input|-i", qr/\d+/)->default(42),
@@ -604,6 +604,28 @@ BEGIN {
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _keypair_invalid("--def","arch","i386"),
                 desc    => "keypair key not validating" 
+            },            
+        ]
+    };
+
+    push @good_specs, { 
+        label => "validate w/ string alternation regex",
+        spec  => [
+            Param( "mode|m", qr/test|live/ )->required
+        ],
+        cases => [
+            { 
+                argv    => [ qw( --mode test ) ],
+                result  => { 
+                    "mode" => 'test',
+                },
+                desc    => "param input validates"
+            },            
+            { 
+                argv    => [ qw( --mode foo ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _param_invalid("mode","foo"),
+                desc    => "param mode not validating" 
             },            
         ]
     };

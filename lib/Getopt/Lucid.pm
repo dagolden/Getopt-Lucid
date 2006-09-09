@@ -1,6 +1,6 @@
 package Getopt::Lucid;
 
-$VERSION = "0.14";
+$VERSION = "0.15";
 @EXPORT_OK = qw(Switch Counter Param List Keypair);
 %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 @ISA = qw( Exporter );
@@ -63,12 +63,12 @@ Getopt::Lucid - Clear, readable syntax for command line processing
   # advanced option specifications
 
   @adv_spec = (
-    Param("input")->required,       # required
-    Param("mode")->default("tcp"),  # defaults
-    Param("host")->needs("port"),   # dependencies
-    Param("port", qr/\d+/ ),        # regex validation
-    Param("config", sub { -r } ),   # custom validation
-    Param("help")->anycase,         # case insensitivity
+    Param("input")->required,          # required
+    Param("mode")->default("tcp"),     # defaults
+    Param("host")->needs("port"),      # dependencies
+    Param("port", qr/\d+/ )->required, # regex validation
+    Param("config", sub { -r } ),      # custom validation
+    Param("help")->anycase,            # case insensitivity
   );
   
   # example with a config file
@@ -363,19 +363,25 @@ package Getopt::Lucid;
 
 =head2 Validation
 
-For Param, List, and Keypair option types, the constructor can be passed an
+For Param, List, and Keypair option types, the constructor may be passed an
 optional validation specification.  Values provided on the command line will be
-validated according to the specification or an exception will be thrown.  A
-validation specification can be either a regular expression, or a reference to
-a subroutine.  Keypairs take up to two validation specifiers.  The first is
-applied to keys and the second is applied to values; either can be left
-undef to ignore validation.  (More complex validation of specific values
-for specific keys must be done manually.)
+validated according to the specification or an exception will be thrown.  
+
+A validation specification can be either a regular expression, or a reference
+to a subroutine.  Keypairs take up to two validation specifiers.  The first is
+applied to keys and the second is applied to values; either can be left undef
+to ignore validation.  (More complex validation of specific values for specific
+keys must be done manually.)
+
+Param options with validation must either be 'required' or have a
+default value that passes the validation test.  This ensures that the option
+will contain valid data once the command line has been processed.  List and
+Keypair options do not have the same restriction as they are empty by default.
 
   @spec = (
-    Param("copies", "\d+"),
-    Param("scaling", qr/\d+/),
-    Param("input", sub { -r } ),
+    Param("copies", "\d+")->required,
+    Param("scaling", qr/\d+/)->default(100),
+    List("input", sub { -r } ),
     Keypair("define, "os|arch", "\w+"),
   );
 
@@ -1204,6 +1210,7 @@ sub _set_defaults {
             /keypair/   ?   (defined $d ? dclone($d): {})  : 
                             undef;
         };
+        next if $spec->{required};
         throw_spec("Default '$spec->{canon}' = '$default{$strip}' fails to validate")
             unless _validate_value($self, $default{$strip}, $spec->{valid});
     }
@@ -1406,15 +1413,6 @@ L<Getopt::Long>
 L<Regexp::Common>
 
 =back
-
-=head1 INSTALLATION
-
-The following commands will build, test, and install this module:
-
- perl Build.PL
- perl Build
- perl Build test
- perl Build install
 
 =head1 BUGS
 

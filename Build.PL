@@ -13,7 +13,7 @@ Module::Build->new(
         Storable => 2,
         # build requires:
         Data::Dumper => 0,
-        Exception::Class::TryCatch => 1.05, 
+        Exception::Class::TryCatch => 1.10, 
         Test::More => 0.45, 
     },
 )->create_build_script;
