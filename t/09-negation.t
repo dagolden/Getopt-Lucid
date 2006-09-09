@@ -33,18 +33,18 @@ BEGIN {
         label => "negation test",
         spec  => [
             Switch("test|t")->default(1),
-            Counter("verbose|v")->default(2),
+            Counter("ver-bose|v")->default(2),
             Param("file|f")->default("foo.txt"),
             List("lib|l")->default(qw( /var /tmp )),
             Keypair("def|d")->default({os => 'linux', arch => 'i386'}),
         ],
         cases => [
             { 
-                argv    => [ qw( --no-test --no-verbose --no-file --no-lib
+                argv    => [ qw( --no-test --no-ver-bose --no-file --no-lib
                                  --no-def ) ],
                 result  => { 
                     "test" => 0, 
-                    "verbose" => 0,
+                    "ver-bose" => 0,
                     "file" => "",
                     "lib" => [],
                     "def" => {},
@@ -52,11 +52,11 @@ BEGIN {
                 desc    => "long-form negate everything"
             },          
             { 
-                argv    => [ qw( no-test no-verbose no-file no-lib
+                argv    => [ qw( no-test no-ver-bose no-file no-lib
                                  no-def ) ],
                 result  => { 
                     "test" => 0, 
-                    "verbose" => 0,
+                    "ver-bose" => 0,
                     "file" => "",
                     "lib" => [],
                     "def" => {},
@@ -67,7 +67,7 @@ BEGIN {
                 argv    => [ qw( no-lib=/var --no-def=os ) ],
                 result  => { 
                     "test" => 1, 
-                    "verbose" => 2,
+                    "ver-bose" => 2,
                     "file" => "foo.txt",
                     "lib" => [qw( /tmp )],
                     "def" => { arch => "i386" },
@@ -75,13 +75,13 @@ BEGIN {
                 desc    => "negate list item and keypair key"
             },          
             { 
-                argv    => [ qw( no-test no-verbose no-file 
+                argv    => [ qw( no-test no-ver-bose no-file 
                                  no-lib=/var --no-def=os
-                                 --test --verbose --file boo.txt
+                                 --test --ver-bose --file boo.txt
                                  --lib /home --def flag=O2) ],
                 result  => { 
                     "test" => 1, 
-                    "verbose" => 1,
+                    "ver-bose" => 1,
                     "file" => "boo.txt",
                     "lib" => [qw( /tmp /home )],
                     "def" => { arch => "i386", flag => "O2" },
@@ -95,9 +95,9 @@ BEGIN {
                 desc    => "negative switch can't take value"
             },          
             { 
-                argv    => [ qw( no-verbose=1  ) ],
+                argv    => [ qw( no-ver-bose=1  ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
-                error_msg => _counter_value("verbose","1"),
+                error_msg => _counter_value("ver-bose","1"),
                 desc    => "negative counter can't take value"
             },          
             { 

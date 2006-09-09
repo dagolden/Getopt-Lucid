@@ -25,7 +25,7 @@ sub why {
 #--------------------------------------------------------------------------#
 
 my $spec = [ 
-    Switch("--verbose"),
+    Switch("--ver-bose"),
     Switch("--test"),
     Switch("-r"),
 ];
@@ -38,7 +38,7 @@ catch my $err;
 is( $err, undef, "spec should validate" );
 SKIP: {    
     skip( "because spec did not validate", 1) if $err;
-    my @expect = sort qw(verbose test r);
+    my @expect = sort qw(ver-bose test r);
     my @got = sort $gl->names();
     is_deeply( \@got, \@expect, "names() produces keywords") or
         diag why( got => \@got, expected => \@expect );

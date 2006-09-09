@@ -34,11 +34,12 @@ SYNOPSIS
         Param("help")->anycase,         # case insensitivity
       );
   
-      # example with additional defaults (with Config::Simple)
-
+      # example with a config file
+  
+      use Config::Std;
       if ( -r $opt->get_config ) {
-        $config = Config::Simple->new($opt->get_config);
-        $opt->merge_defaults( $config->vars ); 
+        read_config( $opt->get_config() => my %config_hash );
+        $opt->merge_defaults( $config_hash{''} ); 
       }
 
 DESCRIPTION
@@ -80,10 +81,11 @@ USAGE
 
       "lib|l|I" means name "lib", alias "l" and alias "I"
  
-    Names and aliases must be valid perl words -- alphanumeric plus
-    underscore. While names and aliases are interchangeable when provided on
-    the command line, the "name" itself is used with the accessors for each
-    option (see Accessors and Mutators).
+    Names and aliases must begin with an alphanumeric charactes, but
+    subsequently may also include both underscore and dash. (E.g. both
+    "input-file" and "input_file" are valid.) While names and aliases are
+    interchangeable when provided on the command line, the "name" portion is
+    used with the accessors for each option (see Accessors and Mutators).
 
     Any of the names and aliases in the specification may be given in any of
     the three styles. By default, Getopt::Lucid works in "magic" mode, in
@@ -299,6 +301,21 @@ USAGE
       print $opt->get_test ? "True" : "False";
       $opt->set_test(1);
 
+    For option names with dashes, underscores should be substitued in the
+    accessor calls. E.g.
+
+      @spec = (
+        Param("--input-file|-i")->required(),
+      );
+  
+      $opt = Getopt::Long->getopt( \@spec );
+      print $opt->get_input_file;
+
+    This can create an ambiguous case if a similar option exists with
+    underscores in place of dashes. (E.g. "input_file" and "input-file".)
+    Users can safely avoid these problems by choosing to use either dashes
+    or underscores exclusively and not mixing the two styles.
+
     Using the "set_NAME" mutator is not recommended and should be used with
     caution. No validation is performed and changes will be lost if the
     results of processing the command line array are recomputed (e.g, such
@@ -400,6 +417,18 @@ USAGE
         case matches are used before case-insensitive matches are searched.
         Thus, "-v" can only match "verbose", despite the `anycase'
         modification, and likewise "-V" can only match "version".
+
+    *Identical names except for dashes and underscores*
+          @spec = (
+            Param("input-file"),
+            Switch("input_file"),
+          );
+
+        Consider the spec above. These are two, separate, valid options, but
+        a call to the accessor `get_input_file' is ambiguous and may return
+        either option, depending on which first satisfies a "fuzzy-matching"
+        algorithm inside the accessor code. Avoid identical names with mixed
+        dash and underscore styles.
 
 METHODS
   `new()'
@@ -506,6 +535,8 @@ METHODS
 
 SEE ALSO
     *   Config::Simple
+
+    *   Config::Std
 
     *   Getopt::Long
 

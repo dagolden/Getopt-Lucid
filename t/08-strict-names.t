@@ -34,16 +34,16 @@ BEGIN {
     push @good_specs, { 
         label => "mixed format names in spec",
         spec  => [
-            Counter("verbose|-v"),
+            Counter("ver-bose|-v"),
             Counter("--test|-t"),
             Counter("-r"),
             Param("f"),
         ],
         cases => [
             { 
-                argv    => [ qw( verbose -v -rtv f=test -r --test -- test ) ],
+                argv    => [ qw( ver-bose -v -rtv f=test -r --test -- test ) ],
                 result  => { 
-                    "verbose" => 3, 
+                    "ver-bose" => 3, 
                     "test" => 2, 
                     "r" => 2, 
                     "f" => "test",
@@ -52,9 +52,9 @@ BEGIN {
                 desc    => "all three types in command line"
             },            
             { 
-                argv    => [ qw( verbose -v -rtv f test -r --test -- test ) ],
+                argv    => [ qw( ver-bose -v -rtv f test -r --test -- test ) ],
                 result  => { 
-                    "verbose" => 3, 
+                    "ver-bose" => 3, 
                     "test" => 2, 
                     "r" => 2, 
                     "f" => "test",
@@ -63,9 +63,9 @@ BEGIN {
                 desc    => "bare param with bare like long-form in spec"
             },            
             { 
-                argv    => [ qw( verbose -v -rtv f=test -r test ) ],
+                argv    => [ qw( ver-bose -v -rtv f=test -r test ) ],
                 result  => { 
-                    "verbose" => 3, 
+                    "ver-bose" => 3, 
                     "test" => 1, 
                     "r" => 2, 
                     "f" => "test",
@@ -80,9 +80,9 @@ BEGIN {
                 desc    => "single dash with word" 
             },            
             { 
-                argv    => [ qw( --verbose ) ],
+                argv    => [ qw( --ver-bose ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
-                error_msg => _invalid_argument("--verbose"),
+                error_msg => _invalid_argument("--ver-bose"),
                 desc    => "long form like bareword in spec" 
             },            
             { 

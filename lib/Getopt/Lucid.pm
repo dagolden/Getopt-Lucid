@@ -2,7 +2,7 @@ package Getopt::Lucid;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = "0.11";
+our $VERSION = "0.12";
 
 # Required modules
 use Getopt::Lucid::Exception;
@@ -71,11 +71,12 @@ Getopt::Lucid - Clear, readable syntax for command line processing
     Param("help")->anycase,         # case insensitivity
   );
   
-  # example with additional defaults (with Config::Simple)
-
+  # example with a config file
+  
+  use Config::Std;
   if ( -r $opt->get_config ) {
-    $config = Config::Simple->new($opt->get_config);
-    $opt->merge_defaults( $config->vars ); 
+    read_config( $opt->get_config() => my %config_hash );
+    $opt->merge_defaults( $config_hash{''} ); 
   }
 
 =head1 DESCRIPTION
@@ -135,10 +136,11 @@ subsequent alias) separated by a vertical bar character.  E.g.:
 
   "lib|l|I" means name "lib", alias "l" and alias "I"
  
-Names and aliases must be valid perl words -- alphanumeric plus underscore.
-While names and aliases are interchangeable when provided on the command line,
-the "name" itself is used with the accessors for each option (see 
-L</Accessors and Mutators>).  
+Names and aliases must begin with an alphanumeric charactes, but subsequently
+may also include both underscore and dash.  (E.g. both "input-file" and
+"input_file" are valid.)  While names and aliases are interchangeable
+when provided on the command line, the "name" portion is used with the accessors
+for each option (see L</Accessors and Mutators>).  
 
 Any of the names and aliases in the specification may be given in any of the
 three styles.  By default, Getopt::Lucid works in "magic" mode, in which option
@@ -436,7 +438,7 @@ L</Managing Defaults and Config Files>).
 After processing the command-line array, the values of the options may be read
 or modified using accessors/mutators of the form "get_NAME" and "set_NAME",
 where NAME represents the option name in the specification without any
-leading dashes.  E.g.
+leading dashes. E.g.
 
   @spec = (
     Switch("--test|-t"),
@@ -445,6 +447,21 @@ leading dashes.  E.g.
   $opt = Getopt::Long->getopt( \@spec );
   print $opt->get_test ? "True" : "False";
   $opt->set_test(1);
+
+For option names with dashes, underscores should be substitued in the accessor
+calls.  E.g.
+
+  @spec = (
+    Param("--input-file|-i")->required(),
+  );
+  
+  $opt = Getopt::Long->getopt( \@spec );
+  print $opt->get_input_file;
+
+This can create an ambiguous case if a similar option exists with underscores
+in place of dashes.  (E.g. "input_file" and "input-file".)  Users can safely
+avoid these problems by choosing to use either dashes or underscores
+exclusively and not mixing the two styles.
 
 Using the "set_NAME" mutator is not recommended and should be used with
 caution.  No validation is performed and changes will be lost if the results of
@@ -582,6 +599,18 @@ However, what if the command line has "-v" or even "-v -V"?  In this case, the
 rule is that exact case matches are used before case-insensitive matches are
 searched.  Thus, "-v" can only match "verbose", despite the C<anycase>
 modification, and likewise "-V" can only match "version".
+
+=item I<Identical names except for dashes and underscores>
+
+  @spec = (
+    Param("input-file"),
+    Switch("input_file"),
+  );
+
+Consider the spec above.  These are two, separate, valid options, but a call to
+the accessor C<get_input_file> is ambiguous and may return either option,
+depending on which first satisfies a "fuzzy-matching" algorithm inside the
+accessor code.  Avoid identical names with mixed dash and underscore styles.
 
 =back
 
@@ -1363,6 +1392,10 @@ __END__
 =item * 
 
 L<Config::Simple>
+
+=item *
+
+L<Config::Std>
 
 =item *
 

@@ -1,7 +1,8 @@
 Revision history for Perl module Getopt::Lucid
 
-0.12 in progress
-    - now supports options with dashes (accessors substitute underscore)
+0.12 Tue Sep 20 13:10:19 EDT 2005
+    - added support for option names with GNU-style dashes; accessors
+      substitute underscore for dashes. (Suggested by Steven Vasilogianis)
 
 0.11 Sat Jul 30 11:03:46 EDT 2005
     - moved build_requires prereqs into requires to work around

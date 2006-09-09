@@ -12,12 +12,12 @@ Module::Build->new(
         Exception::Class => 1.20,
         Storable => 2,
         Exception::Class::TryCatch => 1.05, # here to workaround CPANPLUS bug
-        Test::Exception => 0.20, # here to workaround CPANPLUS bug
+        Test::Exception => 0.21, # here to workaround CPANPLUS bug
         Test::More => 0.48, # here to workaround CPANPLUS bug
     },
     build_requires => {
 #        Exception::Class::TryCatch => 1.05, 
-#        Test::Exception => 0.20,
+#        Test::Exception => 0.21,
 #        Test::More => 0.47, 
     },
     recommends => {},

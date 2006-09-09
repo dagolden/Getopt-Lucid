@@ -32,16 +32,16 @@ BEGIN {
     push @good_specs, { 
         label => "magic bare names in spec",
         spec  => [
-            Counter("verbose|v"),
+            Counter("ver-bose|v"),
             Counter("test|t"),
             Counter("r"),
             Param("f"),
         ],
         cases => [
             { 
-                argv    => [ qw( --verbose v -rtvf=test --r test -- test ) ],
+                argv    => [ qw( --ver-bose v -rtvf=test --r test -- test ) ],
                 result  => { 
-                    "verbose" => 3, 
+                    "ver-bose" => 3, 
                     "test" => 2, 
                     "r" => 2, 
                     "f" => "test",
