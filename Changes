@@ -1,6 +1,6 @@
 Revision history for Perl module Getopt::Lucid
 
-0.10 in progress
+0.10 Tue Jul 12 19:28:59 EDT 2005
     - Single character (alphanumeric) switches
     - Exception-based error handling
     - Specification validation

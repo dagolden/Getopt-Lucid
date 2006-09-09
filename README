@@ -2,7 +2,9 @@ NAME
     Getopt::Lucid - Clear, readable syntax for command line processing
 
 SYNOPSIS
-      # simple option specifications with aliases
+      use Getopt::Lucid qw( :all );
+
+      # basic option specifications with aliases
   
       @specs = (
         Switch("version|V"),    
@@ -19,7 +21,9 @@ SYNOPSIS
       @libs = $opt->get_lib;
       %defs = $opt->get_define;
   
-      # advanced specification options
+      %all_options = $opt->options;
+  
+      # advanced option specifications
 
       @adv_spec = (
         Param("input")->required,       # required
@@ -44,90 +48,358 @@ DESCRIPTION
     plain-English option specification as compared against the more symbolic
     approach of Getopt::Long. Key features include:
 
-    * Five option types: switches, counters, parameters, lists, and keypairs
-    * Three option styles: long, short (including bundled), and bare
-    (without dashes)
-    * Specification of defaults, required options and option dependencies
-    * Validation of options with regexes or subroutines
-    * Support for parsing any array, not just the default @ARGV
-    * Easy incorporation of external defaults (e.g. from a config file) with
-    proper precedence
+    *   Five option types: switches, counters, parameters, lists, and
+        keypairs
+
+    *   Three option styles: long, short (including bundled), and bare
+        (without dashes)
+
+    *   Specification of defaults, required options and option dependencies
+
+    *   Validation of options with regexes or subroutines
+
+    *   Negation of options on the command line
+
+    *   Support for parsing any array, not just the default @ARGV
+
+    *   Incorporation of external defaults (e.g. from a config file) with
+        user control of precedence
+
 USAGE
-  Option Styles and "Strictness"
+  Option Styles, Naming and "Strictness"
 
     Getopt::Lucid support three kinds of option styles: long-style
     ("--foo"), short-style ("-f") and bareword style ("foo"). Short-style
     options are automatically unbundled during command line processing if a
-    single dash is followed by more than one letter ("-xzf").
+    single dash is followed by more than one letter (e.g. "-xzf" becomes "-x
+    -z -f" ).
 
-  Options Names, Aliases, and Styles
+    Each option is identified in the specification with a string consisting
+    of the option "name" followed by zero or more "aliases", with any alias
+    (and each subsequent alias) separated by a vertical bar character. E.g.:
 
-    Each option is identified with a string consisting of the option "name"
-    followed by zero or more "aliases", with an alias (and each subsequent
-    alias) separated by a vertical bar character. E.g.:
-
-     "libs|l|I"
-
+      "lib|l|I" means name "lib", alias "l" and alias "I"
+ 
     Names and aliases must be valid perl words -- alphanumeric plus
-    underscore.
+    underscore. While names and aliases are interchangeable when provided on
+    the command line, the "name" itself is used with the accessors for each
+    option (see Accessors and Mutators).
+
+    Any of the names and aliases in the specification may be given in any of
+    the three styles. By default, Getopt::Lucid works in "magic" mode, in
+    which option names or aliases may be specified with or without leading
+    dashes, and will be parsed from the command line whether or not they
+    have corresponding dashes. Single-character names or aliases may be read
+    with no dash, one dash or two dashes. Multi-character names or aliases
+    must have either no dashes or two dashes. E.g.:
+
+    *   Both "foo" and "--foo" as names in the specification may be read
+        from the command line as either "--foo" or "foo"
+
+    *   The specification name "f" may be read from the command line as
+        "--f", "-f", or just "f"
+
+    In practice, this means that the specification need not use dashes, but
+    if used on the command line, they will be treated appropriately.
+
+    Alternatively, Getopt::Lucid can operate in "strict" mode by setting
+    `$Getopt::Lucid::STRICT' to a true value. In strict mode, option names
+    and aliases may still be specified in any of the three styles, but they
+    will only be parsed from the command line if they are used in exactly
+    the same style. E.g., given the name and alias "--help|-h", only
+    "--help" and "-h" are valid for use on the command line.
 
   Option Specification Constructors
 
-    Options specifications are given in an array. Entries in the array must
-    be created with one of five special constructor functions that return a
-    specification object. The form of the constructor is:
+    Options specifications are provided to Getopt::Lucid in an array.
+    Entries in the array must be created with one of five special
+    constructor functions that return a specification object. These
+    constructor functions may be imported either individually or as a group
+    using the import tag ":all" (e.g. `use Getopt::Lucid qw(:all);').
 
-     Param( NAME_ARGUMENT, VALIDATION_ARGUMENTS );
+    The form of the constructor is:
+
+     Param( NAME_ARGUMENT, VALIDATION_ARGUMENT(S) );
  
-    *   `Switch'
+    The constructor name indicates the type of option. The name argument is
+    a string with the names and aliases separated by vertical bar
+    characters. Validation arguments may or may not be relevant, depending
+    on the type of option. (See Validation below.)
 
-    *   `Counter'
+    The five option specification constructors are:
 
-    *   `Param'
+    *   `Switch()' -- a true/false value. Defaults to false. The appearance
+        of an option of this type on the command line sets it to true.
 
-    *   `List'
+    *   `Counter()' -- a numerical counter. Defaults to 0. The appearance of
+        an option of this type on the command line increments the counter by
+        one.
 
-    *   `Keypair'
+    *   `Param()' -- a variable taking an argument. Defaults to "" (the
+        empty string). When an option of this type appears on the command
+        line, the value of the option is set in one of two ways -- appended
+        with an equals sign or from the next argument on the command line:
 
-    Specification can be further modified with the following methods, which
-    can be chained as necessary:
+          --name=value
+          --name value
 
-    *   `default'
+        In the case where white space is used to separate the option name
+        and the value, if the value looks like an option, an exception will
+        be thrown:
 
-    *   `required'
+          --name --value        # throws an exception
 
-    *   `needs'
+    *   `List()' -- like `Param()' but arguments are pushed onto a list. The
+        default list is empty.
 
-    *   `anycase'
+    *   `Keypair()' -- a variable taking an argument pair, which are added
+        to a hash. Arguments are handled as with `Param()', but the argument
+        itself must have a key and value joined by an equals sign.
+
+          --name=key=value
+          --name key=value
+
+    An option specification can be further modified with the following
+    methods, each of which return the object modified so that modifier
+    chaining is possible:
+
+    *   `default()' -- changes the default for the option to the argument(s)
+        of `default()'. List and hashes can take either a list or a
+        reference to an array or hash, respectively.
+
+          @spec = (
+            Switch("debug")->default(1),
+            Counter("verbose")->default(3),
+            Param("config")->default("/etc/profile"),
+            List("dirs")->default(qw( /var /home )),
+            Keypair("define")->default( arch => "i386" ),
+          );
+  
+    *   `required()' -- indicates that the option *must* appear on the
+        command line or else an exception is thrown. No argument is needed.
+
+          @spec = (
+            Param("input")->required(),
+          );
+
+    *   `needs()' -- takes as an argument a list of option names or aliases
+        of dependencies. If the option this modifies appears on the command
+        line, each of the options given as an argument must appear on the
+        command line as well or an exception is thrown.
+
+          @spec = (
+            Param("input")->needs("output"),
+            Param("output),
+          );
+
+    *   `anycase()' -- indicates that the associated option names/aliases
+        may appear on the command line in lowercase, uppercase, or any
+        mixture of the two. No argument is needed.
+
+          @spec = (
+            Switch("help|h")->anycase(),    # "Help", "HELP", etc.
+          );
+
+    Modifiers may be chained to allow multiple modifiers. E.g.:
+
+      @spec = (
+        Param("input")->default("/dev/random")->needs("output"),
+        Param("output)->default("/dev/null"),
+      );
 
   Validation
 
-    DETAILS TO BE WRITTEN
+    For Param, List, and Keypair option types, the constructor can be passed
+    an optional validation specification. Values provided on the command
+    line will be validated according to the specification or an exception
+    will be thrown. A validation specification can be either a regular
+    expression, or a reference to a subroutine. Keypairs take up to two
+    validation specifiers. The first is applied to keys and the second is
+    applied to values; either can be left undef to ignore validation. (More
+    complex validation of specific values for specific keys must be done
+    manually.)
+
+      @spec = (
+        Param("copies", "\d+"),
+        Param("scaling", qr/\d+/),
+        Param("input", sub { -r } ),
+        Keypair("define, "os|arch", "\w+"),
+      );
+
+    For validation subroutines, the value found on the command line is
+    passed as the first element of `@_', and `$_' is also set equal to the
+    first element. (N.B. Changing `$_' will not change the value that is
+    captured.) The value validates if the subroutine returns a true value.
+
+    For validation with regular expressions, consider using Regexp::Common
+    for a ready library of validation options.
 
   Parsing the Command Line
 
-    DETAILS TO BE WRITTEN
+    Technically, Getopt::Lucid scans an array for command line options, not
+    a command-line string. By default, this array is @ARGV (though other
+    arrays can be used -- see `new()'), which is typically provided by the
+    operating system according to system-specific rules.
 
-  Accessors/Mutators
+    When Getopt::Lucid processes the array, it scans the array in order,
+    removing any specified command line options and any associated
+    arguments, and leaving behind any unrecognized elements in the array. If
+    an element consisting solely of two-dashes ("--") is found, array
+    scanning is terminated at that point. Any options found during scanning
+    are applied in order. E.g.:
 
-    After reading and parsing an array containing options with a
-    Getopt::Lucid option, the values of the options may be read or modified
-    using accessors/mutators of the form "get_BARENAME" and "set_BARENAME",
-    where BARENAME represents the option name provided in the specification
+      @ARGV = qw( --lib /tmp --lib /var );
+      my $opt = Getopt::Lucid->getopt( [ List("lib") ] );
+      print join ", " $opt->lib;
+      # prints "/tmp, /var"
+
+    If an element encountered in processing begins with a dash, but is not
+    recognized as a short-form or long-form option name or alias, an
+    exception will be thrown.
+
+  Negation
+
+    Getopt::Lucid also supports negating options. Options are negated if the
+    option is specified with "no-" or "--no-" prefixed to a name or alias.
+    By default, negation clears the option: Switch and Counter options are
+    set to zero; Param options are set to ""; List and Keypair options are
+    set to an empty list and empty hash, respectively. For List and Keypair
+    options, it is also possible to negate a specific list element or hash
+    key by placing an equals sign and the list element or key immediately
+    after the option name:
+
+      --no-lib=/tmp --no-define=arch
+      # removes "/tmp" from lib and the "arch" key from define
+
+    As with all options, negation is processed in order, allowing a "reset"
+    in the middle of command line processing. This may be useful for those
+    using command aliases who wish to "switch off" options in the alias.
+    E.g, in unix:
+
+      $ alias wibble = wibble.pl --verbose
+      $ wibble --no-verbose
+  
+      # @ARGV would contain ( "--verbose", "--no-verbose" )
+
+    This also may have applications in post-processing configuration files
+    (see Managing Defaults and Config Files).
+
+  Accessors and Mutators
+
+    After processing the command-line array, the values of the options may
+    be read or modified using accessors/mutators of the form "get_NAME" and
+    "set_NAME", where NAME represents the option name in the specification
     without any leading dashes. E.g.
 
-     %spec = { "--test|-t" => { type => "switch" } };
-     $gl = Getopt::Long->getopt( \%spec );
-     print $gl->get_test ? "True" : "False";
-     $gl->set_test(1);
+      @spec = (
+        Switch("--test|-t"),
+      );
+  
+      $opt = Getopt::Long->getopt( \@spec );
+      print $opt->get_test ? "True" : "False";
+      $opt->set_test(1);
+
+    Using the "set_NAME" mutator is not recommended and should be used with
+    caution. No validation is performed and changes will be lost if the
+    results of processing the command line array are recomputed (e.g, such
+    as occurs if new defaults are applied). List and Keypair options
+    mutators take a list, not references.
 
   Managing Defaults and Config Files
 
-    DETAILS TO BE WRITTEN
+    A typical problem for command-line option processing is the precedence
+    relationship between default option values specified within the program,
+    default option values stored in a configuration file or in environment
+    variables, and option values specified on the command-line, particularly
+    when the command-line specifies an alternate configuration file.
+
+    Getopt::Lucid takes the following approach to this problem:
+
+    *   Initial default values may be specified as part of the option
+        specification (using the `default()' modifier)
+
+    *   Default values from the option specification may be modified or
+        replaced entirely with default values provided in an external hash
+        (such as from a standard config file or environment variables)
+
+    *   When the command-line array is processed, options and their
+        arguments are stored in the order they appeared in the command-line
+        array
+
+    *   The stored options are applied in-order to modify or replace the set
+        of "current" default option values
+
+    *   If default values are subsequently changed (such as from an
+        alternative configuration file), the stored options are re-applied
+        in-order to the new set of default option values
+
+    With this approach, the resulting option set is always the result of
+    applying options (or negations) from the command-line array to a set of
+    default-values. Users have complete freedom to apply whatever precedence
+    rules they wish to the default values and may even change default values
+    after the command-line array is processed without losing the options
+    given on the command line.
+
+    Getopt::Lucid provides several functions to assist in manipulating
+    default values:
+
+    *   `merge_defaults()' -- new defaults overwrite any matching, existing
+        defaults
+
+    *   `append_defaults()' -- new defaults overwrite any matching, existing
+        defaults, except for Counter and List options, which have the new
+        defaults added and appended, respectively
+
+    *   `replace_defaults()' -- new defaults replace existing defaults; any
+        options not provided in the new defaults are reset to zero/empty,
+        ignoring any default given in the option specification
+
+    *   `reset_defaults()' -- returns defaults to values given in the
+        options specification
 
   Exceptions and Error Handling
 
-    DETAILS TO BE WRITTEN
+    Getopt::Lucid uses Exception::Class for exceptions. When a major error
+    occurs, Getopt::Lucid will die and throw one of three Exception::Class
+    subclasses:
+
+    *   `Getopt::Lucid::Exception::Usage' -- thrown when Getopt::Lucid
+        methods are called incorrectly
+
+    *   `Getopt::Lucid::Exception::Spec' -- thrown when the specification
+        array contains incorrect or invalid data
+
+    *   `Getopt::Lucid::Exception::ARGV' -- thrown when the command-line is
+        processed and fails to pass specified validation, requirements, or
+        is otherwise determined to be invalid
+
+    These exception may be caught using an `eval' block and allow the
+    calling program to respond differently to each class of exception.
+
+      my $opt;
+      eval { $opt = Getopt::Lucid->getopt( \@spec ) };
+      if ($@) {
+        print "$@\n" && print_usage() && exit 1
+          if ref $@ eq 'Getopt::Lucid::Exception::ARGV';
+        ref $@ ? $@->rethrow : die $@;
+      }
+
+  Ambiguous Cases and Gotchas
+
+    *One-character aliases and anycase*
+          @spec = (
+            Counter("verbose|v")->anycase,
+            Switch("version|V")->anycase,
+          );
+
+        Consider the spec above. By specifying `anycase' on these,
+        "verbose", "Verbose", "VERBOSE" are all acceptable, as are
+        "version", "Version" and so on. (Including long-form versions of
+        these, too, if "magic" mode is used.) However, what if the command
+        line has "-v" or even "-v -V"? In this case, the rule is that exact
+        case matches are used before case-insensitive matches are searched.
+        Thus, "-v" can only match "verbose", despite the `anycase'
+        modification, and likewise "-V" can only match "version".
 
 METHODS
   `new()'
@@ -152,35 +424,35 @@ METHODS
     stored defaults, recalculates the result of processing the command line
     with the revised defaults, and returns a hash with the resulting
     options. Each key/value pair in the passed hash is added to the stored
-    defaults. For switch and parameter options, the value in the passed hash
-    will overwrite any pre-existing value. For counter options, the value is
-    added to any pre-existing value. For list options, the value (or values,
+    defaults. For Switch and Param options, the value in the passed hash
+    will overwrite any pre-existing value. For Counter options, the value is
+    added to any pre-existing value. For List options, the value (or values,
     if the value is an array reference) will be pushed onto the end of the
-    list of existing values. For keypair options, the keypairs will be added
+    list of existing values. For Keypair options, the keypairs will be added
     to the existing hash, overwriting existing key/value pairs (just like
-    merging two hashes). Keys which are not valid "barewords" derived from
-    the options specification will be ignored.
+    merging two hashes). Keys which are not valid names from the options
+    specification will be ignored.
 
   `defaults()'
 
      %defaults = $opt->defaults();
 
-    Returns a hash containing current default values. Keys are "bareword"
-    names from the option specification. (i.e. names without any leading
-    dashes). These defaults represent the baseline values that are modified
-    by the parsed command line options.
+    Returns a hash containing current default values. Keys are names from
+    the option specification (without any leading dashes). These defaults
+    represent the baseline values that are modified by the parsed command
+    line options.
 
   `getopt()'
 
-     %options = $opt->getopt();
      $opt = Getopt::Lucid->getopt( \@option_spec );
      $opt = Getopt::Lucid->getopt( \@option_spec, \@option_array );
+     $opt->getopt();
 
-    Parses the command line array (@ARGV by default). When called as an
-    object method, it takes no arguments and returns a hash containing the
-    options parsed. When called as a class function, `getopt' takes the same
-    arguments as `new', calls `new' to create an object before parsing the
-    command line, and returns the new object.
+    Parses the command line array (@ARGV by default). When called as a class
+    function, `getopt' takes the same arguments as `new', calls `new' to
+    create an object before parsing the command line, and returns the new
+    object. When called as an object method, it takes no arguments and
+    returns itself.
 
   `merge_defaults()'
 
@@ -192,15 +464,14 @@ METHODS
     with the revised defaults, and returns a hash with the resulting
     options. Each key/value pair in the passed hash is added to the stored
     defaults, overwriting any pre-existing value. Keys which are not valid
-    "barewords" derived from the options specification will be ignored.
+    names from the options specification will be ignored.
 
   `names()'
 
      @names = $opt->names();
 
-    Returns the list of "bareword" names corresponding to the names in the
-    options specification. Each name represents a key in the hash of options
-    provided by `options'.
+    Returns the list of names in the options specification. Each name
+    represents a key in the hash of options provided by `options'.
 
   `options()'
 
@@ -211,7 +482,7 @@ METHODS
     result of modifying the defaults with the results of command line
     processing.
 
-  `replace_defaults'
+  `replace_defaults()'
 
      %options = replace_defaults( %config_hash );
      %options = replace_defaults( \%config_hash );
@@ -221,8 +492,7 @@ METHODS
     with the revised defaults, and returns a hash with the resulting
     options. Each key/value pair in the passed hash replaces existing
     defaults, including those given in the option specifications. Keys which
-    are not valid "barewords" derived from the options specification will be
-    ignored.
+    are not valid names from the option specification will be ignored.
 
   `reset_defaults()'
 
@@ -233,6 +503,13 @@ METHODS
     with the restored defaults, and returns a hash with the resulting
     options. This undoes the effect of a `merge_defaults' or `add_defaults'
     call.
+
+SEE ALSO
+    *   Config::Simple
+
+    *   Getopt::Long
+
+    *   Regexp::Common
 
 INSTALLATION
     The following commands will build, test, and install this module:
@@ -261,11 +538,4 @@ COPYRIGHT
 
     The full text of the license can be found in the LICENSE file included
     with this module.
-
-SEE ALSO
-    *   Getopt::Lucid::Cookbook
-
-    *   Getopt::Long
-
-    *   Config::Simple
 
