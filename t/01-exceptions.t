@@ -30,7 +30,7 @@ BEGIN {
 use Test::More tests => 2 + @exceptions;
 use Test::Exception;
 use Getopt::Lucid::Exception;
-use Getopt::Lucid;
+use Getopt::Lucid ':all';
 
 throws_ok { $_->throw } $_, "throwing $_" for @exceptions;
 can_ok( "Getopt::Lucid$_", @throw_aliases ) for ( "::Exception", "" );

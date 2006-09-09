@@ -11,7 +11,8 @@ use Carp;
 
 use base 'Exporter';
 
-our @EXPORT = qw(Switch Counter Param List Keypair);
+our @EXPORT_OK = qw(Switch Counter Param List Keypair);
+our %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 
 # Definitions
 my $VALID_CHAR      = "a-zA-Z0-9?";

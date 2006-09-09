@@ -8,7 +8,7 @@ use Test::Exception;
 use Data::Dumper;
 use Exception::Class::TryCatch;
 
-use Getopt::Lucid;
+use Getopt::Lucid ':all';
 use Getopt::Lucid::Exception;
 
 sub why {
