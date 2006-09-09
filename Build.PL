@@ -9,13 +9,16 @@ Module::Build->new(
     license         => 'perl',
     requires => {
         perl => 5.006,
-        Clone::Any => 1.01,
         Exception::Class => 1.20,
+        Storable => 2,
+        Exception::Class::TryCatch => 1.05, # here to workaround CPANPLUS bug
+        Test::Exception => 0.20, # here to workaround CPANPLUS bug
+        Test::More => 0.48, # here to workaround CPANPLUS bug
     },
     build_requires => {
-        Exception::Class::TryCatch => 1.05,
-        Test::Exception => 0.20,
-        Test::More => 0.47, 
+#        Exception::Class::TryCatch => 1.05, 
+#        Test::Exception => 0.20,
+#        Test::More => 0.47, 
     },
     recommends => {},
     conflicts => {},

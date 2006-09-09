@@ -1,5 +1,12 @@
 Revision history for Perl module Getopt::Lucid
 
+0.11 in progress
+    - moved build_requires prereqs into requires to work around
+      a CPANPLUS bug for users preferring Build.PL
+    - replaced Clone::Any::clone with Storable::dclone for fewer
+      non-core dependencies
+    - removed Cookbook stub for now
+
 0.10 Tue Jul 12 19:28:59 EDT 2005
     - Single character (alphanumeric) switches
     - Exception-based error handling

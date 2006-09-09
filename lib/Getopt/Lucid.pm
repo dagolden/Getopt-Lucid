@@ -2,11 +2,11 @@ package Getopt::Lucid;
 use 5.006;
 use strict;
 use warnings;
-our $VERSION = '0.10';
+our $VERSION = "0.11";
 
 # Required modules
 use Getopt::Lucid::Exception;
-use Clone::Any qw(clone);
+use Storable qw(dclone);
 use Carp;
 
 use base 'Exporter';
@@ -666,7 +666,7 @@ sub append_defaults {
                 throw_usage("Option '$strip' in append_defaults() must be scalar or array reference")
                     if ref($append{$strip}) && ref($append{$strip}) ne 'ARRAY';
                 $append{$strip} = ref($append{$strip}) eq 'ARRAY'
-                    ? clone( $append{$strip} )
+                    ? dclone( $append{$strip} )
                     : [ $append{$strip} ] ;
                 push @{$self->{default}{$strip}}, @{$append{$strip}};
                 last;
@@ -702,7 +702,7 @@ the baseline values that are modified by the parsed command line options.
 
 sub defaults {
 	my ($self) = @_;
-	return %{clone($self->{default})};
+	return %{dclone($self->{default})};
 }
 
 
@@ -800,7 +800,7 @@ sub merge_defaults {
                 throw_usage("Option '$strip' in merge_defaults() must be scalar or array reference")
                     if ref($merge{$strip}) && ref($merge{$strip}) ne 'ARRAY';
                 $merge{$strip} = ref($merge{$strip}) eq 'ARRAY'
-                    ? clone( $merge{$strip} )
+                    ? dclone( $merge{$strip} )
                     : [ $merge{$strip} ] ;
                 $self->{default}{$strip} = $merge{$strip};
                 last;
@@ -808,7 +808,7 @@ sub merge_defaults {
             /keypair/ && do {
                 throw_usage("Option '$strip' in merge_defaults() must be scalar or hash reference")
                     if ref($merge{$strip}) && ref($merge{$strip}) ne 'HASH';
-                $self->{default}{$strip} = clone($merge{$strip});
+                $self->{default}{$strip} = dclone($merge{$strip});
                 last;
             };
         }
@@ -852,7 +852,7 @@ result of modifying the defaults with the results of command line processing.
 
 sub options {
 	my ($self) = @_;
-    return %{clone($self->{options})};	
+    return %{dclone($self->{options})};	
 }
 
 #--------------------------------------------------------------------------#
@@ -899,14 +899,14 @@ sub replace_defaults {
                 } else {
                     $replace{$strip} = [];
                 }
-                $self->{default}{$strip} = clone($replace{$strip});
+                $self->{default}{$strip} = dclone($replace{$strip});
                 last;
             };
             /keypair/ && do {
                 throw_usage("Option '$strip' in replace_defaults() must be scalar or hash reference")
                     if ref($replace{$strip}) && ref($replace{$strip}) ne 'HASH';
                 $replace{$strip} = {} unless exists $replace{$strip};
-                $self->{default}{$strip} = clone($replace{$strip});
+                $self->{default}{$strip} = dclone($replace{$strip});
                 last;
             };
         }
@@ -1169,8 +1169,8 @@ sub _set_defaults {
             /switch/    ?   (defined $d ? $d: 0)   :
             /counter/   ?   (defined $d ? $d: 0)   :
             /parameter/ ?   (defined $d ? $d: "")  : 
-            /list/      ?   (defined $d ? clone($d): [])  :
-            /keypair/   ?   (defined $d ? clone($d): {})  : 
+            /list/      ?   (defined $d ? dclone($d): [])  :
+            /keypair/   ?   (defined $d ? dclone($d): {})  : 
                             undef;
         };
         throw_spec("Default '$spec->{canon}' = '$default{$strip}' fails to validate")

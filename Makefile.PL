@@ -2,17 +2,17 @@
 use ExtUtils::MakeMaker;
 WriteMakefile
 (
+          'PL_FILES' => {},
+          'INSTALLDIRS' => 'site',
           'NAME' => 'Getopt::Lucid',
+          'EXE_FILES' => [],
           'VERSION_FROM' => 'lib/Getopt/Lucid.pm',
           'PREREQ_PM' => {
-                           'Clone::Any' => '1.01',
+                           'Test::More' => '0.48',
                            'Exception::Class' => '1.2',
-                           'Exception::Class::TryCatch' => '1.05',
                            'Test::Exception' => '0.2',
-                           'Test::More' => '0.47'
-                         },
-          'INSTALLDIRS' => 'site',
-          'EXE_FILES' => [],
-          'PL_FILES' => {}
+                           'Storable' => 2,
+                           'Exception::Class::TryCatch' => '1.05'
+                         }
         )
 ;
