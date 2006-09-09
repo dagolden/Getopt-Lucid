@@ -1,6 +1,6 @@
 Revision history for Perl module Getopt::Lucid
 
-0.11 in progress
+0.11 Sat Jul 30 11:03:46 EDT 2005
     - moved build_requires prereqs into requires to work around
       a CPANPLUS bug for users preferring Build.PL
     - replaced Clone::Any::clone with Storable::dclone for fewer
