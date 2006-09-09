@@ -21,6 +21,7 @@ my $VALID_SHORT     = qr/-[$VALID_CHAR]/;
 my $VALID_BARE      = qr/[$VALID_CHAR]+/;
 my $VALID_NAME      = qr/$VALID_LONG|$VALID_SHORT|$VALID_BARE/;
 my $SHORT_BUNDLE    = qr/-[$VALID_CHAR]{2,}/;
+my $CAPTURE_NEG     = qr/(?:--)?no-(.*)/;
 
 my @valid_keys = qw( name type required default nocase valid needs canon );
 my @valid_types = qw( switch counter parameter list keypair);
@@ -426,21 +427,22 @@ sub getopt {
             unless ref($spec) eq 'ARRAY';
         $self = new($self,$spec,$target)
     }
-    my (@passthrough);
+    my (@passthrough,$neg);
     while (@{$self->{target}}) {
         my $raw = shift @{$self->{target}};
         last if $raw =~ /^--$/;
         my ($orig, $val) = _split_equals($self, $raw);
         next if _unbundle($self, $orig, $val);
+        $neg++ if $orig =~ s/^$CAPTURE_NEG$/$1/;
         my $arg = _find_arg($self, $orig);
         if ( $arg ) {
             $self->{seen}{$arg}++;
             for ($self->{spec}{$arg}{type}) { 
-                /switch/    ? _switch   ($self, $arg, $val) :
-                /counter/   ? _counter  ($self, $arg, $val) :
-                /parameter/ ? _parameter($self, $arg, $val) :
-                /list/      ? _list     ($self, $arg, $val) :
-                /keypair/   ? _keypair  ($self, $arg, $val) :
+                /switch/    ? _switch   ($self, $arg, $val, $neg) :
+                /counter/   ? _counter  ($self, $arg, $val, $neg) :
+                /parameter/ ? _parameter($self, $arg, $val, $neg) :
+                /list/      ? _list     ($self, $arg, $val, $neg) :
+                /keypair/   ? _keypair  ($self, $arg, $val, $neg) :
                               throw_usage("can't handle type '$_'");
             } 
         } else {
@@ -665,10 +667,10 @@ sub _check_required {
 #--------------------------------------------------------------------------#
 
 sub _counter {
-	my ($self, $arg, $val) = @_;
+	my ($self, $arg, $val, $neg) = @_;
     throw_argv("Counter option can't take a value: $self->{spec}{$arg}{canon}=$val")
         if defined $val;
-    push @{$self->{parsed}}, [ $arg, 1 ];
+    push @{$self->{parsed}}, [ $arg, 1, $neg ];
 }
 
 #--------------------------------------------------------------------------#
@@ -693,15 +695,22 @@ sub _find_arg {
 #--------------------------------------------------------------------------#
 
 sub _keypair {
-	my ($self, $arg, $val) = @_;
-    my $value = defined $val ? $val : shift @{$self->{target}};
-    throw_argv("Badly formed keypair for '$self->{spec}{$arg}{canon}'")
-        unless $value =~ /[^=]+=.+/;
-    my ($key, $data) = ( $value =~ /^([^=]*)=(.*)$/ ) ;
-    throw_argv("Invalid keypair '$self->{spec}{$arg}{canon}': $key => $data")
-        unless _validate_value($self, { $key => $data }, 
+	my ($self, $arg, $val, $neg) = @_;
+    my ($value, $key, $data);
+    if ($neg) {
+        $value = $val;
+        $key = $data = undef;
+    }
+    else {
+        $value = defined $val ? $val : shift @{$self->{target}};
+        throw_argv("Badly formed keypair for '$self->{spec}{$arg}{canon}'")
+            unless $value =~ /[^=]+=.+/;
+        ($key, $data) = ( $value =~ /^([^=]*)=(.*)$/ ) ;
+        throw_argv("Invalid keypair '$self->{spec}{$arg}{canon}': $key => $data")
+            unless _validate_value($self, { $key => $data }, 
                                $self->{spec}{$arg}{valid});    
-    push @{$self->{parsed}}, [ $arg, [ $key, $data ] ];
+    }
+    push @{$self->{parsed}}, [ $arg, [ $key, $data ], $neg ];
 }
 
 #--------------------------------------------------------------------------#
@@ -709,15 +718,20 @@ sub _keypair {
 #--------------------------------------------------------------------------#
 
 sub _list {
-	my ($self, $arg, $val) = @_;
-    my $value = defined $val ? $val : shift @{$self->{target}};
-    throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
-        if ! defined $val and _find_arg($self, $value);
-#        if ! defined $val and grep {$value eq $_} keys %{$self->{alias_hr}};
-    throw_argv("Invalid list option $self->{spec}{$arg}{canon} = $value")
-        unless _validate_value($self, $value, $self->{spec}{$arg}{valid});    
-    my $strip = $self->{strip}{$arg};
-    push @{$self->{parsed}}, [ $arg, $value ];
+	my ($self, $arg, $val, $neg) = @_;
+    my $value;
+    if ($neg) {
+        $value = $val;
+    }
+    else {
+        $value = defined $val ? $val : shift @{$self->{target}};
+        $value =~ s/^$CAPTURE_NEG$/$1/ if ! defined $val;
+        throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
+            if ! defined $val and _find_arg($self, $value);
+        throw_argv("Invalid list option $self->{spec}{$arg}{canon} = $value")
+            unless _validate_value($self, $value, $self->{spec}{$arg}{valid});    
+    }
+    push @{$self->{parsed}}, [ $arg, $value, $neg ];
 }
 
 #--------------------------------------------------------------------------#
@@ -725,15 +739,22 @@ sub _list {
 #--------------------------------------------------------------------------#
 
 sub _parameter {
-	my ($self, $arg, $val) = @_;
-    my $value = defined $val ? $val : shift @{$self->{target}};
-    throw_argv("Parameter can't be repeated: $self->{spec}{$arg}{canon}=$value")
-        if $self->{seen}{$arg} > 1;
-    throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
-        if ! defined $val and _find_arg($self, $value);
-    throw_argv("Invalid parameter $self->{spec}{$arg}{canon} = $value")
-        unless _validate_value($self, $value, $self->{spec}{$arg}{valid});    
-    push @{$self->{parsed}}, [ $arg, $value ];
+	my ($self, $arg, $val, $neg) = @_;
+    my $value;
+    if ($neg) {
+        $value = $val;
+    }
+    else {
+        $value = defined $val ? $val : shift @{$self->{target}};
+        $value =~ s/^$CAPTURE_NEG$/$1/ if ! defined $val;
+        throw_argv("Parameter can't be repeated: $self->{spec}{$arg}{canon}=$value")
+            if $self->{seen}{$arg} > 1;
+        throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
+            if ! defined $val and _find_arg($self, $value);
+        throw_argv("Invalid parameter $self->{spec}{$arg}{canon} = $value")
+            unless _validate_value($self, $value, $self->{spec}{$arg}{valid});    
+    }
+    push @{$self->{parsed}}, [ $arg, $value, $neg ];
 }
 
 #--------------------------------------------------------------------------#
@@ -771,15 +792,31 @@ sub _recalculate_options {
                       ref($x) eq 'HASH'  ? { %$x } : $x;
     }
     for my $opt ( @{$self->{parsed}} ) {
-        my ($name, $value) = @$opt;
+        my ($name, $value, $neg) = @$opt;
         for ($self->{spec}{$name}{type}) {
             my $strip = $self->{strip}{$name};
-            /switch/    && do { $result{$strip} = $value; last; };
-            /counter/   && do { $result{$strip} += $value; last; };
-            /parameter/ && do { $result{$strip} = $value; last; };
-            /list/      && do { push @{$result{$strip}}, $value; last };
-            /keypair/   && do { $result{$strip}{$value->[0]} = $value->[1]; 
-                                last; };
+            /switch/    && do { 
+                $result{$strip} = $neg ? 0 : $value; 
+                last; 
+            };
+            /counter/   && do { 
+                $result{$strip} = $neg ? 0 : $result{$strip} + $value; 
+                last; 
+            };
+            /parameter/ && do { 
+                $result{$strip} = $neg ? "" : $value; 
+                last; 
+            };
+            /list/      && do { 
+                if ($neg) {  $result{$strip} = [] }
+                else { push @{$result{$strip}}, $value }
+                last; 
+            };
+            /keypair/   && do { 
+                if ($neg) { $result{$strip} = {} }
+                else { $result{$strip}{$value->[0]} = $value->[1]}; 
+                last; 
+            };
         }
     }
     return $self->{options} = \%result;
@@ -852,12 +889,14 @@ sub _split_equals {
 #--------------------------------------------------------------------------#
 
 sub _switch {
-	my ($self, $arg, $val) = @_;
-    throw_argv("Switch used twice: $self->{spec}{$arg}{canon}")
-        if $self->{seen}{$arg} > 1;
-    throw_argv("Switch can't take a value: $self->{spec}{$arg}{canon}=$val")
-        if defined $val;
-    push @{$self->{parsed}}, [ $arg, 1 ];
+	my ($self, $arg, $val, $neg) = @_;
+    if (! $neg ) {
+        throw_argv("Switch used twice: $self->{spec}{$arg}{canon}")
+            if $self->{seen}{$arg} > 1;
+        throw_argv("Switch can't take a value: $self->{spec}{$arg}{canon}=$val")
+            if defined $val;
+    }
+    push @{$self->{parsed}}, [ $arg, 1, $neg ];
 }
 
 #--------------------------------------------------------------------------#
