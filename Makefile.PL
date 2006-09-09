@@ -12,7 +12,7 @@ WriteMakefile
                            'Exception::Class' => '1.2',
                            'Data::Dumper' => 0,
                            'Storable' => 2,
-                           'Exception::Class::TryCatch' => '1.05'
+                           'Exception::Class::TryCatch' => '1.1'
                          }
         )
 ;

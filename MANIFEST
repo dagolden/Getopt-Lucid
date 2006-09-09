@@ -1,5 +1,6 @@
 Build.PL
 Changes
+INSTALL
 lib/Getopt/Lucid.pm
 lib/Getopt/Lucid/Exception.pm
 LICENSE

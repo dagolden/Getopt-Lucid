@@ -5,7 +5,7 @@ Module::Build->new(
     module_name     => 'Getopt::Lucid',
     dist_author => 'David A Golden <dagolden@cpan.org>', 
     create_makefile_pl => "traditional",
-    create_readme => 0,
+    create_readme => 1,
     license         => 'perl',
     requires => {
         perl => 5.005,
