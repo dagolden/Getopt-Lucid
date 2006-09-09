@@ -7,9 +7,11 @@ use Test::More;
 use Test::Exception;
 use Data::Dumper;
 use Exception::Class::TryCatch;
-
 use Getopt::Lucid ':all';
 use Getopt::Lucid::Exception;
+
+# Work around win32 console buffering that can show diags out of order
+Test::More->builder->failure_output(*STDOUT) if $ENV{HARNESS_VERBOSE};
 
 sub why {
     my %vars = @_;
@@ -610,31 +612,31 @@ BEGIN {
                 argv    => [ qw( --input twenty-three ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _param_invalid("--input","twenty-three"),
-                desc    => "param input failing to validate" 
+                desc    => "param input not validating" 
             },            
             { 
                 argv    => [ qw( --lib foo --lib % ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _list_invalid("--lib","%"),
-                desc    => "list input failing to validate" 
+                desc    => "list input not validating" 
             },            
             { 
                 argv    => [ qw( --def os=amiga ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _keypair_invalid("--def","os","amiga"),
-                desc    => "keypair value input failing to validate" 
+                desc    => "keypair value not validating" 
             },            
             { 
                 argv    => [ qw( --def arch=i386 ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _keypair_invalid("--def","arch","i386"),
-                desc    => "keypair key input failing to validate" 
+                desc    => "keypair key not validating" 
             },            
         ]
     };
 
     push @good_specs, { 
-        label => "validate keypair key only",
+        label => "validate only keypair key",
         spec  => [
             Keypair("--def", qr/(os)*/),
         ],
@@ -650,13 +652,13 @@ BEGIN {
                 argv    => [ qw( --def arch=i386 ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _keypair_invalid("--def","arch", "i386"),
-                desc    => "keypair key input failing to validate" 
+                desc    => "key not validating" 
             },            
         ]
     };
 
     push @good_specs, { 
-        label => "validate keypair value only",
+        label => "validate only keypair value",
         spec  => [
             Keypair("--def", undef, qr/(linux|win32)*/),
         ],
@@ -672,7 +674,7 @@ BEGIN {
                 argv    => [ qw( --def os=amiga ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _keypair_invalid("--def","os","amiga"),
-                desc    => "keypair key input failing to validate" 
+                desc    => "value not validating" 
             },            
         ]
     };
@@ -942,13 +944,13 @@ while ( $trial = shift @good_specs ) {
             catch my $err;
             if (defined $case->{exception}) { # expected
                 ok( $err && $err->isa( $case->{exception} ), 
-                    "$trial->{label}: $case->{desc} should throw exception" )
+                    "$trial->{label}: $case->{desc} throws exception" )
                     or diag why( got => ref($err), expected => $case->{exception});
                 is( $err, $case->{error_msg}, 
-                    "$trial->{label}: $case->{desc} error message correct");
+                    "$trial->{label}: $case->{desc} error msg ok");
             } elsif ($err) { # unexpected
-                fail( "$trial->{label}: $case->{desc} threw an exception")
-                    or diag "Exception is '$err'";
+                fail( "$trial->{label}: $case->{desc}")
+                    or diag "Threw exception: '$err'";
                 pass("$trial->{label}: skipping \@ARGV check");
             } else { # no exception
                 is_deeply( \%opts, $case->{result}, 
@@ -956,7 +958,7 @@ while ( $trial = shift @good_specs ) {
                     diag why( got => \%opts, expected => $case->{result});
                 my $argv_after = $case->{after} || [];
                 is_deeply( \@ARGV, $argv_after,
-                    "$trial->{label}: \@ARGV correct after processing") or
+                    "$trial->{label}: \@ARGV correct afterwards") or
                     diag why( got => \@ARGV, expected => $argv_after);
             }
         }
@@ -971,9 +973,9 @@ while ( $trial = shift @bad_specs ) {
     try eval { Getopt::Lucid->new($trial->{spec}) };
     catch my $err;
     ok( $err && $err->isa( $trial->{exception} ), 
-        "$trial->{label} should throw exception" )
+        "$trial->{label} throws exception" )
         or diag why( got => ref($err), expected => $trial->{exception});
-    is( $err, $trial->{error_msg}, "$trial->{label} error message correct");
+    is( $err, $trial->{error_msg}, "$trial->{label} error msg ok");
 }
 
 

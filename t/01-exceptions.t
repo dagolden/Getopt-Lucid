@@ -29,6 +29,10 @@ BEGIN {
 
 use Test::More tests => 2 + @exceptions;
 use Test::Exception;
+
+# Work around win32 console buffering that can show diags out of order
+Test::More->builder->failure_output(*STDOUT) if $ENV{HARNESS_VERBOSE};
+
 use Getopt::Lucid::Exception;
 use Getopt::Lucid ':all';
 

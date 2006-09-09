@@ -11,6 +11,9 @@ use Exception::Class::TryCatch;
 use Getopt::Lucid ':all';
 use Getopt::Lucid::Exception;
 
+# Work around win32 console buffering that can show diags out of order
+Test::More->builder->failure_output(*STDOUT) if $ENV{HARNESS_VERBOSE};
+
 sub why {
     my %vars = @_;
     $Data::Dumper::Sortkeys = 1;
