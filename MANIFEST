@@ -1,7 +1,6 @@
 Build.PL
 Changes
 lib/Getopt/Lucid.pm
-lib/Getopt/Lucid/Cookbook.pod
 lib/Getopt/Lucid/Exception.pm
 LICENSE
 Makefile.PL
