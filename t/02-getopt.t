@@ -1,10 +1,5 @@
-#!/usr/bin/perl
 use strict;
-use warnings;
-use blib;  
-
 use Test::More;
-use Test::Exception;
 use Data::Dumper;
 use Exception::Class::TryCatch;
 use Getopt::Lucid ':all';

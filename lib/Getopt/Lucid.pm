@@ -1,18 +1,16 @@
 package Getopt::Lucid;
+
+$VERSION = "0.13";
+@EXPORT_OK = qw(Switch Counter Param List Keypair);
+%EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
+@ISA = qw( Exporter );
+
 use 5.006;
 use strict;
-use warnings;
-our $VERSION = "0.12";
-
-# Required modules
+use Carp;
+use Exporter ();
 use Getopt::Lucid::Exception;
 use Storable qw(dclone);
-use Carp;
-
-use base 'Exporter';
-
-our @EXPORT_OK = qw(Switch Counter Param List Keypair);
-our %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 
 # Definitions
 my $VALID_STARTCHAR = "a-zA-Z0-9";
@@ -27,7 +25,9 @@ my $NEGATIVE        = qr/(?:--)?no-/;
 my @valid_keys = qw( name type required default nocase valid needs canon );
 my @valid_types = qw( switch counter parameter list keypair);
 
-our $STRICT = 0;
+use vars qw( $STRICT );
+$STRICT = 0;
+
 
 #--------------------------------------------------------------------------#
 # main pod documentation 
@@ -1341,8 +1341,7 @@ sub _validate_value {
 
 sub AUTOLOAD {
     my $self = shift;
-    our $AUTOLOAD;
-    my $name = $AUTOLOAD;
+    my $name = $Getopt::Lucid::AUTOLOAD;
     $name =~ s/.*:://;   # strip fully-qualified portion
     return if $name eq "DESTROY";
     my ($action, $maybe_opt) = $name =~ /^(get|set)_(.+)/ ;

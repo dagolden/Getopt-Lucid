@@ -5,21 +5,15 @@ Module::Build->new(
     module_name     => 'Getopt::Lucid',
     dist_author => 'David A Golden <dagolden@cpan.org>', 
     create_makefile_pl => "traditional",
-    create_readme => 1,
+    create_readme => 0,
     license         => 'perl',
     requires => {
         perl => 5.006,
         Exception::Class => 1.20,
         Storable => 2,
-        Exception::Class::TryCatch => 1.05, # here to workaround CPANPLUS bug
-        Test::Exception => 0.21, # here to workaround CPANPLUS bug
-        Test::More => 0.48, # here to workaround CPANPLUS bug
+        # build requires:
+        Data::Dumper => 0,
+        Exception::Class::TryCatch => 1.05, 
+        Test::More => 0.45, 
     },
-    build_requires => {
-#        Exception::Class::TryCatch => 1.05, 
-#        Test::Exception => 0.21,
-#        Test::More => 0.47, 
-    },
-    recommends => {},
-    conflicts => {},
 )->create_build_script;

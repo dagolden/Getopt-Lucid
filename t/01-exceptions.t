@@ -1,10 +1,6 @@
-#!/usr/bin/perl
-use strict;
-use warnings;
-use blib;  
-
 # Getopt::Lucid::Exception  
-
+use strict;
+use Test::More;
 #--------------------------------------------------------------------------#
 # Test cases
 #--------------------------------------------------------------------------#
@@ -23,12 +19,12 @@ BEGIN {
     );
 }
 
+
 #--------------------------------------------------------------------------#
 # Test script
 #--------------------------------------------------------------------------#
 
-use Test::More tests => 2 + @exceptions;
-use Test::Exception;
+plan tests => 2 + @exceptions;
 
 # Work around win32 console buffering that can show diags out of order
 Test::More->builder->failure_output(*STDOUT) if $ENV{HARNESS_VERBOSE};
@@ -36,7 +32,11 @@ Test::More->builder->failure_output(*STDOUT) if $ENV{HARNESS_VERBOSE};
 use Getopt::Lucid::Exception;
 use Getopt::Lucid ':all';
 
-throws_ok { $_->throw } $_, "throwing $_" for @exceptions;
+for my $e ( @exceptions ) {
+    eval { $e->throw };
+    ok ($@->isa($e), "throwing $e");
+}
+
 can_ok( "Getopt::Lucid$_", @throw_aliases ) for ( "::Exception", "" );
 
 
