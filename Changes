@@ -1,10 +1,11 @@
 Revision history for Perl module Getopt::Lucid
 
-0.13 in progress
+0.14 Wed Feb  8 11:32:22 EST 2006
     - fixed typo in Pod
     - removed Test::Exception dependencies
     - removed 5.006 specific syntax
     - added optional pod/podcoverage tests (skipped by default)
+    - switching to even numbering for releases
 
 0.12 Tue Sep 20 13:10:19 EDT 2005
     - added support for option names with GNU-style dashes; accessors

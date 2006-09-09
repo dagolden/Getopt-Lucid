@@ -8,9 +8,9 @@ WriteMakefile
           'EXE_FILES' => [],
           'VERSION_FROM' => 'lib/Getopt/Lucid.pm',
           'PREREQ_PM' => {
-                           'Test::More' => '0.48',
+                           'Test::More' => '0.45',
                            'Exception::Class' => '1.2',
-                           'Test::Exception' => '0.2',
+                           'Data::Dumper' => 0,
                            'Storable' => 2,
                            'Exception::Class::TryCatch' => '1.05'
                          }

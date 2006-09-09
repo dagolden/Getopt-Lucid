@@ -10,5 +10,6 @@ my $min_pc = 0.17;
 eval "use Pod::Coverage $min_pc";
 plan skip_all => "Pod::Coverage $min_pc required for testing POD coverage"
     if $@;
+plan tests => 1;
 
-all_pod_coverage_ok();
+pod_coverage_ok( "Getopt::Lucid", {trustme => [qw( Counter Switch List Param Keypair)] });

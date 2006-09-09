@@ -1,5 +1,5 @@
 package Getopt::Lucid::Exception;
-$VERSION = "0.13";
+$VERSION = "0.14";
 
 use 5.005;
 use strict;

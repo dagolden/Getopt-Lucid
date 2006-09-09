@@ -1,6 +1,6 @@
 package Getopt::Lucid;
 
-$VERSION = "0.13";
+$VERSION = "0.14";
 @EXPORT_OK = qw(Switch Counter Param List Keypair);
 %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 @ISA = qw( Exporter );
@@ -328,6 +328,7 @@ Modifiers may be chained to allow multiple modifiers.  E.g.:
 =cut
 
 package Getopt::Lucid::Spec;
+$Getopt::Lucid::Spec::VERSION = "0.14";
 
 sub required { my $self = shift; $self->{required} = 1; return $self };
 
