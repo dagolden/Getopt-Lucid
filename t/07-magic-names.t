@@ -21,6 +21,9 @@ sub why {
 # Test cases
 #--------------------------------------------------------------------------#
 
+sub _invalid_argument   {sprintf("Invalid argument: %s",@_)}
+sub _param_ambiguous    {sprintf("Ambiguous value for %s could be option: %s",@_)}
+
 my ($num_tests, @good_specs);
 
 BEGIN {
@@ -44,6 +47,18 @@ BEGIN {
                 },
                 after   => [qw( test )],
                 desc    => "all three types in command line"
+            },            
+            { 
+                argv    => [ qw( -test ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _invalid_argument("-e"),
+                desc    => "single dash with word" 
+            },            
+            { 
+                argv    => [ qw( f --test ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _param_ambiguous("f", "--test"),
+                desc    => "ambiguous param" 
             },            
         ]
     };
