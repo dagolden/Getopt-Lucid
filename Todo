@@ -16,6 +16,7 @@ TODO list for Perl module Getopt::Lucid
 # Bugfixes/technical/other
 #--------------------------------------------------------------------------#
 
+- test how negation is handled under $STRICT
 - write cookbook
 - refactor ugly code (module and tests)
 - Allow keypairs to escape an equals sign for use in keys(?) -- e.g.

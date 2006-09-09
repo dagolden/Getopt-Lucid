@@ -106,6 +106,10 @@ Validation of options with regexes or subroutines
 
 =item *
 
+Negation of options
+
+=item *
+
 Support for parsing any array, not just the default @ARGV
 
 =item *
@@ -381,14 +385,56 @@ for a ready library of validation options.
 
 =head2 Parsing the Command Line
 
-DETAILS TO BE WRITTEN
+Technically, Getopt::Lucid scans an array for command line options, not a
+command-line string.  By default, this array is @ARGV (though other arrays can
+be used -- see C<new()>), which is typically provided by the operating system
+according to system-specific rules.  
+
+When Getopt::Lucid processes the array, it scans the array in order, removing
+any specified command line options and any associated arguments, and leaving
+behind any unrecognized elements in the array.  If an element consisting solely
+of two-dashes ("--") is found, array scanning is terminated at that point.
+Any options found during scanning are applied in order.  E.g.:
+
+  @ARGV(qw( --lib /tmp --lib /var ));
+  my $opt = Getopt::Lucid->getopt( [ List("lib") ] );
+  print join ", " $opt->lib;
+  # prints "/tmp, /var"
+
+If an element encountered in processing begins with a dash, but is not
+recognized as a short-form or long-form option name or alias, an exception 
+will be thrown.
+
+=head2 Negation
+
+Getopt::Lucid also supports negating options.  Options are negated if the
+option is specified with "no-" or "--no-" prefixed to a name or alias.  By
+default, negation clears the option:  Switch and Counter options are set to
+zero; Param options are set to ""; List and Keypair options are set to an empty
+list and empty hash, respectively. For List and Keypair options, it is also
+possible to negate a specific list element or hash key by placing an equals
+sign and the list element or key immediately after the option name:
+
+  --no-lib=/tmp --no-define=arch
+  # removes "/tmp" from lib and the "arch" key from define
+
+As with all options, negation is processed in order, allowing a "reset" in
+the middle of command line processing.  This may be useful for those using
+command aliases who wish to "switch off" options in the alias.  E.g, in unix:
+
+  $ alias wibble = wibble.pl --verbose
+  $ wibble --no-verbose
+  
+  # @ARGV would contains ( "--verbose", "--no-verbose" )
+
+This also may have applications in post-processing configuration files (see
+L</Managing Defaults and Config Files>).
 
 =head2 Accessors and Mutators
 
-After reading and parsing an array containing options with a Getopt::Lucid
-option, the values of the options may be read or modified using
-accessors/mutators of the form "get_BARENAME" and "set_BARENAME", where
-BARENAME represents the option name provided in the specification without any
+After processing the command-line array, the values of the options may be read
+or modified using accessors/mutators of the form "get_NAME" and "set_NAME",
+where NAME represents the option name in the specification without any
 leading dashes.  E.g.
 
   @spec = (
@@ -399,11 +445,87 @@ leading dashes.  E.g.
   print $opt->get_test ? "True" : "False";
   $opt->set_test(1);
 
-ADD SET_ NOT RECOMMENDED
+Using the "set_NAME" mutator is not recommended and should be used with
+caution.  No validation is performed and changes will be lost if the results of
+processing the command line array are recomputed (e.g, such as occurs if new
+defaults are applied).  List and Keypair options mutators take a list, not
+references.
 
 =head2 Managing Defaults and Config Files
 
-DETAILS TO BE WRITTEN
+A typical problem for command-line option processing is the precedence
+relationship between default option values specified within the program,
+default option values stored in a configuration file or in environment
+variables, and option values specified on the command-line, particularly 
+when the command-line specifies an alternate configuration file.
+
+Getopt::Lucid takes the following approach to this problem:
+
+=over
+
+=item * 
+
+Initial default values may be specified as part of the option 
+specification (using the C<default()> modifier)
+
+=item *
+
+Default values from the option specification may be modified or replaced
+entirely with default values provided in an external hash 
+(such as from a standard config file or environment variables)
+
+=item * 
+
+When the command-line array is processed, options and their arguments
+are stored in the order they appeared in the command-line array
+
+=item *
+
+The stored options are applied in-order to modify or replace the set of 
+"current" default option values
+
+=item *
+
+If default values are subsequently changed (such as from an alternative
+configuration file), the stored options are re-applied in-order to the 
+new set of default option values
+
+=back
+
+With this approach, the resulting option set is always the result of applying
+options (or negations) from the command-line array to a set of default-values.  Users have 
+complete freedom to apply whatever precedence rules they wish to the default
+values and may even change default values after the command-line array is 
+processed.
+
+Getopt::Lucid provides several functions to assist in manipulating default
+values:
+
+=over
+
+=item *
+
+C<merge_defaults()> -- new defaults overwrite any matching, existing defaults
+
+=item *
+
+C<append_defaults()> -- new defaults overwrite any matching, existing defaults,
+except for Counter and List options, which have the new defaults added and
+appended, respectively
+
+=item *
+
+C<replace_defaults()> -- new defaults replace existing defaults; any options
+not provided in the new defaults are reset to zero/empty, ignoring any 
+default given in the option specification
+
+=item *
+
+C<reset_defaults()> -- returns defaults to values given in the options
+specification
+
+=back
+
 
 =head2 Exceptions and Error Handling
 
