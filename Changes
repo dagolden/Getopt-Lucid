@@ -44,4 +44,6 @@ Revision history for Perl module Getopt::Lucid
     - revamp argument spec to new, simpler format
     - validation on lists (validate each value)
     - validation on keypairs (simple validation for keys/values as a whole)
-  signify?)
+      signify?)
+    - "magic" mode as the default: take barewords in spec and handle any form
+      that appears to match it

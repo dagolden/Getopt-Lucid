@@ -4,7 +4,8 @@ TODO list for Perl module Getopt::Lucid
 # Features to add
 #--------------------------------------------------------------------------#
 
-- add more magic so args don't have to have "-" or "--"
+- add more tests for magic: ambiguous param handling, single dash with 
+  bareword longer than 1 letter, etc.
 - add "strict" argument to use for less magic on names/aliases
 - create "handler" spec option with coderef to denote a potential command
 - commands() function to give list of command seen on command line

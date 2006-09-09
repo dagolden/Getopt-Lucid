@@ -16,4 +16,5 @@ t/03-getopt-notargv.t
 t/04-names.t
 t/05-accessors.t
 t/06-default-handling.t
+t/07-magic-names.t
 Todo
