@@ -26,28 +26,29 @@ sub why {
 
 my $spec = [
     Switch("-t"),
-    Counter("-v"),
-    Param("-f"),
+    Counter("--verb_osity"),
+    Param("--file-name"),
     List("-I"),  
     Keypair("-d"),
 ];
 
 my $case = { 
-    argv    => [ qw( -tvvf=passwd -I /etc -I /lib -d os=linux ) ],
+    argv    => [ qw( --verb_osity -t --file-name=passwd 
+                     -I /etc -I /lib -d os=linux ) ],
     result  => { 
-        t => 1, 
-        v => 2, 
-        f => "passwd", 
-        I => [qw(/etc /lib)],
-        d => { os => "linux" },
+        t           => 1, 
+        verb_osity  => 1, 
+        "file-name" => "passwd", 
+        I           => [qw(/etc /lib)],
+        d           => { os => "linux" },
     },
     desc    => "getopt accessors"
 };
 
 my $replace = { 
     t => 2, 
-    v => 3, 
-    f => "group", 
+    verb_osity => 3, 
+    "file-name" => "group", 
     I => [qw(/var /tmp)],
     d => { os => "win32" },
 };
@@ -76,23 +77,24 @@ SKIP: {
         for my $key (keys %{$case->{result}}) {
             no strict 'refs';
             my $result = $case->{result}{$key};
+            (my $clean_key = $key ) =~ s/-/_/g;
             if ( ref($result) eq 'ARRAY' ) {
-                is_deeply( [eval "\$gl->get_$key"], $result, 
+                is_deeply( [eval "\$gl->get_$clean_key"], $result, 
                     "accessor for '$key' correct");
-                &{"Getopt::Lucid::set_$key"}($gl,@{$replace->{$key}});
-                is_deeply( [eval "\$gl->get_$key"], $replace->{$key}, 
+                &{"Getopt::Lucid::set_$clean_key"}($gl,@{$replace->{$key}});
+                is_deeply( [eval "\$gl->get_$clean_key"], $replace->{$key}, 
                     "mutator for '$key' correct");
             } elsif ( ref($result) eq 'HASH' ) {
-                is_deeply( {eval "\$gl->get_$key"}, $result, 
+                is_deeply( {eval "\$gl->get_$clean_key"}, $result, 
                     "accessor for '$key' correct");
-                &{"Getopt::Lucid::set_$key"}($gl,%{$replace->{$key}});
-                is_deeply( {eval "\$gl->get_$key"}, $replace->{$key}, 
+                &{"Getopt::Lucid::set_$clean_key"}($gl,%{$replace->{$key}});
+                is_deeply( {eval "\$gl->get_$clean_key"}, $replace->{$key}, 
                     "mutator for '$key' correct");
             } else {
-                is( (eval "\$gl->get_$key") , $result,
+                is( (eval "\$gl->get_$clean_key") , $result,
                     "accessor for '$key' correct");
-                &{"Getopt::Lucid::set_$key"}($gl,$replace->{$key});
-                is( eval "\$gl->get_$key", $replace->{$key}, 
+                &{"Getopt::Lucid::set_$clean_key"}($gl,$replace->{$key});
+                is( eval "\$gl->get_$clean_key", $replace->{$key}, 
                     "mutator for '$key' correct");
             }
         }

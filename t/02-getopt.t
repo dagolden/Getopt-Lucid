@@ -776,6 +776,26 @@ BEGIN {
         ]
     };
 
+    push @good_specs, { 
+        label => "dash and underscore options",
+        spec  => [
+            Switch("--dash-style"),
+            Switch("--underscore_style"),
+        ],
+        cases => [
+            { 
+                argv    => [ qw( --dash-style ) ],
+                result  => { "dash-style" => "1", "underscore_style" => "0" },
+                desc    => "dash-style name works",
+            },            
+            { 
+                argv    => [ qw( --underscore_style ) ],
+                result  => { "dash-style" => "0", "underscore_style" => "1" },
+                desc    => "underscore_style name works",
+            },            
+        ]
+    };
+
     # Bad specification testing
 
     push @bad_specs, { 

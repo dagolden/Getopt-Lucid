@@ -28,7 +28,7 @@ sub why {
 our $spec = [
     Switch("-t")->default(0),
     Counter("-v")->default(1),
-    Param("-f")->default("hosts"),
+    Param("--file-names")->default("hosts"),
     List("-I")->default("/home"),
     Keypair("-d")->default( arch => "i386" ),
     Switch("-x")->default(1),
@@ -39,7 +39,7 @@ our $case = {
     result  => { 
         t => 1, 
         v => 3, 
-        f => "hosts", 
+        "file-names" => "hosts", 
         I => [qw(/home /etc /lib)],
         d => { arch => "i386", version => "1.0a" },
         x => 1,
@@ -51,7 +51,7 @@ our $case = {
 our $config1 = { 
     t => 1, 
     v => 4, 
-    f => "group", 
+    "file-names" => "group", 
     I => [qw(/var /tmp)],
     d => { os => "win32" },
     z => 1  # extra not in the spec
@@ -60,7 +60,7 @@ our $config1 = {
 our $merge_default = {
     t => 1, 
     v => 4, 
-    f => "group", 
+    "file-names" => "group", 
     I => [qw(/var /tmp)],
     d => { os => "win32" },
     x => 1,
@@ -69,7 +69,7 @@ our $merge_default = {
 our $append_default = {
     t => 1, 
     v => 5, 
-    f => "group", 
+    "file-names" => "group", 
     I => [qw(/home /var /tmp)],
     d => { arch => "i386", os => "win32" },
     x => 1,
@@ -78,7 +78,7 @@ our $append_default = {
 our $replace_default = {
     t => 1, 
     v => 4, 
-    f => "group", 
+    "file-names" => "group", 
     I => [qw(/var /tmp)],
     d => { os => "win32" },
     x => 0,
@@ -87,7 +87,7 @@ our $replace_default = {
 our $merge_result = { 
     t => 1, 
     v => 6, 
-    f => "group", 
+    "file-names" => "group", 
     I => [qw(/var /tmp /etc /lib)],
     d => { os => "win32", version => "1.0a" },
     x => 1,
@@ -96,7 +96,7 @@ our $merge_result = {
 our $append_result = { 
     t => 1, 
     v => 7, 
-    f => "group", 
+    "file-names" => "group", 
     I => [qw(/home /var /tmp /etc /lib)],
     d => { arch => "i386", os => "win32", version => "1.0a" },
     x => 1,
@@ -105,7 +105,7 @@ our $append_result = {
 our $replace_result = { 
     t => 1, 
     v => 6, 
-    f => "group", 
+    "file-names" => "group", 
     I => [qw(/var /tmp /etc /lib)],
     d => { os => "win32", version => "1.0a" },
     x => 0,

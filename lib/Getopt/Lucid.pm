@@ -15,12 +15,13 @@ our @EXPORT_OK = qw(Switch Counter Param List Keypair);
 our %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 
 # Definitions
-my $VALID_CHAR      = "a-zA-Z0-9";
-my $VALID_LONG      = qr/--[$VALID_CHAR]+/;
-my $VALID_SHORT     = qr/-[$VALID_CHAR]/;
-my $VALID_BARE      = qr/[$VALID_CHAR]+/;
+my $VALID_STARTCHAR = "a-zA-Z0-9";
+my $VALID_CHAR      = "a-zA-Z0-9_-";
+my $VALID_LONG      = qr/--[$VALID_STARTCHAR][$VALID_CHAR]*/;
+my $VALID_SHORT     = qr/-[$VALID_STARTCHAR]/;
+my $VALID_BARE      = qr/[$VALID_STARTCHAR][$VALID_CHAR]*/;
 my $VALID_NAME      = qr/$VALID_LONG|$VALID_SHORT|$VALID_BARE/;
-my $SHORT_BUNDLE    = qr/-[$VALID_CHAR]{2,}/;
+my $SHORT_BUNDLE    = qr/-[$VALID_STARTCHAR]{2,}/;
 my $NEGATIVE        = qr/(?:--)?no-/;
 
 my @valid_keys = qw( name type required default nocase valid needs canon );
@@ -1315,10 +1316,29 @@ sub AUTOLOAD {
     my $name = $AUTOLOAD;
     $name =~ s/.*:://;   # strip fully-qualified portion
     return if $name eq "DESTROY";
-    my ($action, $opt) = $name =~ /^(get|set)_(.+)/ ;
+    my ($action, $maybe_opt) = $name =~ /^(get|set)_(.+)/ ;
     if ($action) {
-        throw_usage("Can't $action unknown option '$opt'")
-            unless grep { $opt eq $_} values %{$self->{strip}};
+        # look for a match
+        my $opt;
+        SEARCH:
+        for my $known_opt ( values %{ $self->{strip} } ) {
+            if ( $maybe_opt eq $known_opt ) {
+                $opt = $known_opt;
+                last SEARCH;
+            }
+            # try without dashes
+            (my $fuzzy_opt = $known_opt) =~ s/-/_/g;
+            if ( $maybe_opt eq $fuzzy_opt ) {
+                $opt = $known_opt;
+                last SEARCH;
+            }
+        }
+        
+        # throw if no valid option was found
+        throw_usage("Can't $action unknown option '$maybe_opt'")
+            if ! $opt;
+
+        # handle the accessor if an option was found
         if ($action eq "set") {
             $self->{options}{$opt} = 
                 ref($self->{options}{$opt}) eq 'ARRAY' ? [@_] :
