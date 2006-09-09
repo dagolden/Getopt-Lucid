@@ -11,6 +11,8 @@ use Exception::Class::TryCatch;
 use Getopt::Lucid ':all';
 use Getopt::Lucid::Exception;
 
+$Getopt::Lucid::STRICT = 1;
+
 sub why {
     my %vars = @_;
     $Data::Dumper::Sortkeys = 1;
@@ -29,16 +31,16 @@ my ($num_tests, @good_specs);
 BEGIN {
     
     push @good_specs, { 
-        label => "magic bare names in spec",
+        label => "mixed format names in spec",
         spec  => [
-            Counter("verbose|v"),
-            Counter("test|t"),
-            Counter("r"),
+            Counter("verbose|-v"),
+            Counter("--test|-t"),
+            Counter("-r"),
             Param("f"),
         ],
         cases => [
             { 
-                argv    => [ qw( --verbose v -rtvf=test --r test -- test ) ],
+                argv    => [ qw( verbose -v -rtv f=test -r --test -- test ) ],
                 result  => { 
                     "verbose" => 3, 
                     "test" => 2, 
@@ -49,22 +51,50 @@ BEGIN {
                 desc    => "all three types in command line"
             },            
             { 
+                argv    => [ qw( verbose -v -rtv f test -r --test -- test ) ],
+                result  => { 
+                    "verbose" => 3, 
+                    "test" => 2, 
+                    "r" => 2, 
+                    "f" => "test",
+                },
+                after   => [qw( test )],
+                desc    => "bare param with bare like long-form in spec"
+            },            
+            { 
+                argv    => [ qw( verbose -v -rtv f=test -r test ) ],
+                result  => { 
+                    "verbose" => 3, 
+                    "test" => 1, 
+                    "r" => 2, 
+                    "f" => "test",
+                },
+                after   => [qw( test )],
+                desc    => "bareword like long-form in spec passed through"
+            },            
+            { 
                 argv    => [ qw( -test ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _invalid_argument("-e"),
                 desc    => "single dash with word" 
             },            
             { 
-                argv    => [ qw( f test ) ],
+                argv    => [ qw( --verbose ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
-                error_msg => _param_ambiguous("f", "test"),
-                desc    => "ambiguous param -- bareword" 
+                error_msg => _invalid_argument("--verbose"),
+                desc    => "long form like bareword in spec" 
             },            
             { 
-                argv    => [ qw( f --test ) ],
+                argv    => [ qw( --r ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
-                error_msg => _param_ambiguous("f", "--test"),
-                desc    => "ambiguous param -- long form" 
+                error_msg => _invalid_argument("--r"),
+                desc    => "long form like short in spec" 
+            },            
+            { 
+                argv    => [ qw( -f=--test ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _invalid_argument("-f"),
+                desc    => "shoft form like bare in spec" 
             },            
         ]
     };

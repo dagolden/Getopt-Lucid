@@ -100,8 +100,8 @@ Validation of options with regexes or subroutines
 Support for parsing any array, not just the default @ARGV
 
 =item *
-Easy incorporation of external defaults (e.g. from a config file) with
-proper precedence
+Incorporation of external defaults (e.g. from a config file) with
+user control of precedence
 
 =back
 
@@ -114,6 +114,8 @@ short-style ("-f") and bareword style ("foo").  Short-style options
 are automatically unbundled during command line processing if a single dash
 is followed by more than one letter ("-xzf").
 
+MORE TO BE WRITTEN
+
 =head2 Options Names, Aliases, and Styles
 
 Each option is identified with a string consisting of the option "name"
@@ -123,6 +125,8 @@ separated by a vertical bar character.  E.g.:
  "libs|l|I"
 
 Names and aliases must be valid perl words -- alphanumeric plus underscore.
+
+MORE TO BE WRITTEN
 
 =head2 Option Specification Constructors
 
@@ -134,25 +138,15 @@ specification object.  The form of the constructor is:
  
 =over
 
-=item *
+=item * C<Switch>
 
-C<Switch>
+=item * C<Counter>
 
-=item *
+=item * C<Param>
 
-C<Counter>
+=item * C<List>
 
-=item *
-
-C<Param>
-
-=item *
-
-C<List>
-
-=item *
-
-C<Keypair>
+=item * C<Keypair>
 
 =back
 
@@ -190,21 +184,13 @@ which can be chained as necessary:
 
 =over
 
-=item *
+=item * C<default>
 
-C<default>
+=item * C<required>
 
-=item *
+=item * C<needs>
 
-C<required>
-
-=item *
-
-C<needs>
-
-=item *
-
-C<anycase>
+=item * C<anycase>
 
 =back
 
@@ -271,6 +257,23 @@ DETAILS TO BE WRITTEN
 =head2 Exceptions and Error Handling
 
 DETAILS TO BE WRITTEN
+
+=head2 Ambiguous Cases and Gotchas
+
+I<One-character aliases and anycase>
+
+  @spec = (
+    Counter("verbose|v")->anycase,
+    Switch("version|V")->anycase,
+  );
+
+Consider the spec above.  By specifying C<anycase> on these, "verbose",
+"Verbose", "VERBOSE" are all acceptable, as are "version", "Version" and so on.
+(Including long-form versions of these, too.)  However, what if the command
+line has "-v" or even "-v -V"?  In this case, the rule is that exact case
+matches are used before case-insensitive matches are searched.  Thus, "-v" can
+only match "verbose", despite the C<anycase> modification, and likewise "-V"
+can only match "version".
 
 =head1 METHODS
 
@@ -550,7 +553,7 @@ sub options {
 # replace_defaults()
 #--------------------------------------------------------------------------#
 
-=head2 C<replace_defaults>
+=head2 C<replace_defaults()>
 
  %options = replace_defaults( %config_hash );
  %options = replace_defaults( \%config_hash );
@@ -982,6 +985,20 @@ sub AUTOLOAD {
 1; #this line is important and will help the module return a true value
 __END__
 
+=head1 SEE ALSO
+
+=over
+
+=item *
+
+L<Getopt::Long>
+
+=item * 
+
+L<Config::Simple>
+
+=back
+
 =head1 INSTALLATION
 
 The following commands will build, test, and install this module:
@@ -1013,23 +1030,5 @@ it and/or modify it under the same terms as Perl itself.
 
 The full text of the license can be found in the
 LICENSE file included with this module.
-
-=head1 SEE ALSO
-
-=over
-
-=item *
-
-L<Getopt::Lucid::Cookbook>
-
-=item *
-
-L<Getopt::Long>
-
-=item * 
-
-L<Config::Simple>
-
-=back
 
 =cut

@@ -47,3 +47,4 @@ Revision history for Perl module Getopt::Lucid
       signify?)
     - "magic" mode as the default: take barewords in spec and handle any form
       that appears to match it
+      - add "strict" argument to use for less magic on names/aliases

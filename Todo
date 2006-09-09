@@ -4,7 +4,6 @@ TODO list for Perl module Getopt::Lucid
 # Features to add
 #--------------------------------------------------------------------------#
 
-- add "strict" argument to use for less magic on names/aliases
 - create "handler" spec option with coderef to denote a potential command
 - commands() function to give list of command seen on command line
 - dispatch() function to call, in order, the list of commands
@@ -19,7 +18,6 @@ TODO list for Perl module Getopt::Lucid
 #--------------------------------------------------------------------------#
 
 - -v and -V w/ nocase
-- $opt->get_? (disallow ?)
 
 #--------------------------------------------------------------------------#
 # API brainstorming
