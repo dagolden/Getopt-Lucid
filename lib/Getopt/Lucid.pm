@@ -427,16 +427,18 @@ sub getopt {
             unless ref($spec) eq 'ARRAY';
         $self = new($self,$spec,$target)
     }
-    my (@passthrough,$neg);
+    my (@passthrough);
     while (@{$self->{target}}) {
         my $raw = shift @{$self->{target}};
         last if $raw =~ /^--$/;
         my ($orig, $val) = _split_equals($self, $raw);
         next if _unbundle($self, $orig, $val);
-        $neg++ if $orig =~ s/^$NEGATIVE(.*)$/$1/;
+        my $neg = $orig =~ s/^$NEGATIVE(.*)$/$1/ ? 1 : 0;
         my $arg = _find_arg($self, $orig);
         if ( $arg ) {
-            $self->{seen}{$arg}++;
+            $neg ?
+                $self->{seen}{$arg} = 0 :
+                $self->{seen}{$arg}++;
             for ($self->{spec}{$arg}{type}) { 
                 /switch/    ? _switch   ($self, $arg, $val, $neg) :
                 /counter/   ? _counter  ($self, $arg, $val, $neg) :
@@ -741,7 +743,8 @@ sub _parameter {
 	my ($self, $arg, $val, $neg) = @_;
     my $value;
     if ($neg) {
-        $value = $val;
+        throw_argv("Negated parameter option can't take a value: $self->{spec}{$arg}{canon}=$val")
+            if defined $val;
     }
     else {
         $value = defined $val ? $val : shift @{$self->{target}};
@@ -896,11 +899,11 @@ sub _split_equals {
 
 sub _switch {
 	my ($self, $arg, $val, $neg) = @_;
+    throw_argv("Switch can't take a value: $self->{spec}{$arg}{canon}=$val")
+        if defined $val;
     if (! $neg ) {
         throw_argv("Switch used twice: $self->{spec}{$arg}{canon}")
             if $self->{seen}{$arg} > 1;
-        throw_argv("Switch can't take a value: $self->{spec}{$arg}{canon}=$val")
-            if defined $val;
     }
     push @{$self->{parsed}}, [ $arg, 1, $neg ];
 }
@@ -913,7 +916,8 @@ sub _unbundle {
 	my ($self,$arg, $val) = @_;
     if ( $arg =~ /^$SHORT_BUNDLE$/ ) { 
         my @flags = split(//,substr($arg,1));
-        unshift @{$self->{target}}, ("-" . pop(@flags) . "=" . $val) if defined $val; 
+        unshift @{$self->{target}}, ("-" . pop(@flags) . "=" . $val) 
+            if defined $val; 
         for ( reverse @flags ) {
             unshift @{$self->{target}}, "-$_";
         }

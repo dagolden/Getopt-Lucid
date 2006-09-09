@@ -13,6 +13,7 @@ Test::More->builder->failure_output(*STDOUT) if $ENV{HARNESS_VERBOSE};
 
 use Getopt::Lucid ':all';
 use Getopt::Lucid::Exception;
+use t::ErrorMessages;
 
 $Getopt::Lucid::STRICT = 1;
 
@@ -25,9 +26,6 @@ sub why {
 #--------------------------------------------------------------------------#
 # Test cases
 #--------------------------------------------------------------------------#
-
-sub _invalid_argument   {sprintf("Invalid argument: %s",@_)}
-sub _param_ambiguous    {sprintf("Ambiguous value for %s could be option: %s",@_)}
 
 my ($num_tests, @good_specs);
 

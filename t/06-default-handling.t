@@ -10,6 +10,7 @@ use Exception::Class::TryCatch;
 
 use Getopt::Lucid ':all';
 use Getopt::Lucid::Exception;
+use t::ErrorMessages;
 
 # Work around win32 console buffering that can show diags out of order
 Test::More->builder->failure_output(*STDOUT) if $ENV{HARNESS_VERBOSE};
@@ -23,16 +24,6 @@ sub why {
 #--------------------------------------------------------------------------#
 # Test cases
 #--------------------------------------------------------------------------#
-
-sub _invalid_list {
-    sprintf("Option '%s' in %s must be scalar or array reference",@_)
-}
-sub _invalid_keypair {
-    sprintf("Option '%s' in %s must be scalar or hash reference",@_)
-}
-sub _invalid_splat_defaults {
-    sprintf("Argument to %s must be a hash or hash reference",@_)
-}
 
 our $spec = [
     Switch("-t")->default(0),

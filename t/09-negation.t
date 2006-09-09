@@ -10,6 +10,7 @@ use Exception::Class::TryCatch;
 
 use Getopt::Lucid ':all';
 use Getopt::Lucid::Exception;
+use t::ErrorMessages;
 
 # Work around win32 console buffering that can show diags out of order
 Test::More->builder->failure_output(*STDOUT) if $ENV{HARNESS_VERBOSE};
@@ -73,13 +74,68 @@ BEGIN {
                 },
                 desc    => "negate list item and keypair key"
             },          
-            # test negate specific list item or keypair key
-            # test no-switch, switch (shouldn't complain about repeats)
-            # test no-switch=n -- should complain, ditto counter,param
-            
+            { 
+                argv    => [ qw( no-test no-verbose no-file 
+                                 no-lib=/var --no-def=os
+                                 --test --verbose --file boo.txt
+                                 --lib /home --def flag=O2) ],
+                result  => { 
+                    "test" => 1, 
+                    "verbose" => 1,
+                    "file" => "boo.txt",
+                    "lib" => [qw( /tmp /home )],
+                    "def" => { arch => "i386", flag => "O2" },
+                },
+                desc    => "negate followed by new options"
+            },          
+            { 
+                argv    => [ qw( no-test=1  ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _switch_value("test","1"),
+                desc    => "negative switch can't take value"
+            },          
+            { 
+                argv    => [ qw( no-verbose=1  ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _counter_value("verbose","1"),
+                desc    => "negative counter can't take value"
+            },          
+            { 
+                argv    => [ qw( no-file=foo.txt  ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _param_neg_value("file","foo.txt"),
+                desc    => "negative param can't take value"
+            },          
         ]
     };
+    
+    
+    # test negation of required and prereqs
 
+#    push @good_specs, { 
+#        label => "negation test",
+#        spec  => [
+#            Switch("test|t")->default(1),
+#            Counter("verbose|v")->default(2),
+#            Param("file|f")->default("foo.txt"),
+#            List("lib|l")->default(qw( /var /tmp )),
+#            Keypair("def|d")->default({os => 'linux', arch => 'i386'}),
+#        ],
+#        cases => [
+#            { 
+#                argv    => [ qw( --no-test --no-verbose --no-file --no-lib
+#                                 --no-def ) ],
+#                result  => { 
+#                    "test" => 0, 
+#                    "verbose" => 0,
+#                    "file" => "",
+#                    "lib" => [],
+#                    "def" => {},
+#                },
+#                desc    => "long-form negate everything"
+#            },
+#        ],
+#    };
 
 } #BEGIN 
 
