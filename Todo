@@ -16,6 +16,7 @@ TODO list for Perl module Getopt::Lucid
 # Bugfixes/technical/other
 #--------------------------------------------------------------------------#
 
+- Pod fix -- option merging short examples
 - test how negation is handled under $STRICT
 - write cookbook
 - refactor ugly code (module and tests)
