@@ -11,11 +11,13 @@ TODO list for Perl module Getopt::Lucid
 - For keypair validation, pass *both* key and value to a validation 
   subroutine (allowing custom validation by key)
 - Callbacks (?)
+- option to allow unrecognized dash-prefixed options without exception
 
 #--------------------------------------------------------------------------#
 # Bugfixes/technical/other
 #--------------------------------------------------------------------------#
 
+- make STRICT an object parameter, not a global
 - Pod fix -- option merging short examples
 - test how negation is handled under $STRICT
 - write cookbook
