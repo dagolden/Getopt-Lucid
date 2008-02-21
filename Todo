@@ -18,10 +18,13 @@ TODO list for Perl module Getopt::Lucid
     - commands() function to give list of command seen on command line (?)
     - dispatch() function to call, in order, the list of commands (?)
 - Usage information in spec and printed by a separate function
+    - optional name for params usage("msg", "FILE") --> --input=FILE
+    - usage("msg", "LABEL", "VALUE") --> --keypair LABEL=VALUE
 - For keypair validation, pass *both* key and value to a validation 
   subroutine (allowing custom validation by key)
 - Callbacks (?)
 - option to allow unrecognized dash-prefixed options without exception
+- "cuddle" parameters -- e.g. "-Ilib" is "-I lib"
 
 #--------------------------------------------------------------------------#
 # Bugfixes/technical/other

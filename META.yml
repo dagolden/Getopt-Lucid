@@ -1,6 +1,6 @@
 ---
 name: Getopt-Lucid
-version: 0.16
+version: 0.17
 author:
   - 'David A Golden <dagolden@cpan.org>'
 abstract: 'Clear, readable syntax for command line processing'
@@ -8,23 +8,27 @@ license: perl
 resources:
   license: http://dev.perl.org/licenses/
 requires:
-  Data::Dumper: 0
+  Carp: 0
   Exception::Class: 1.2
+  Exporter: 0
+  Getopt::Lucid::Exception: 0.16
+  Storable: 2.18
+  perl: 5.006
+build_requires:
+  Data::Dumper: 0
   Exception::Class::TryCatch: 1.1
-  Storable: 2
-  Test::More: 0.45
-  perl: 5.005
+  Test::More: 0.62
 provides:
   Getopt::Lucid:
     file: lib/Getopt/Lucid.pm
-    version: 0.16
+    version: 0.17
   Getopt::Lucid::Exception:
     file: lib/Getopt/Lucid/Exception.pm
-    version: 0.16
+    version: 0.17
   Getopt::Lucid::Spec:
     file: lib/Getopt/Lucid.pm
     version: 0.16
-generated_by: Module::Build version 0.2804
+generated_by: Module::Build version 0.280801
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2

@@ -1,12 +1,13 @@
 package Getopt::Lucid;
-
-$VERSION = "0.16";
-@EXPORT_OK = qw(Switch Counter Param List Keypair);
-%EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
-@ISA = qw( Exporter );
-
-use 5.005;
+use 5.006;
 use strict;
+use warnings;
+
+our $VERSION = '0.17';
+our @EXPORT_OK = qw(Switch Counter Param List Keypair);
+our %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
+our @ISA = qw( Exporter );
+
 use Carp;
 use Exporter ();
 use Getopt::Lucid::Exception;

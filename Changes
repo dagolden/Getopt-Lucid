@@ -1,5 +1,9 @@
 Revision history for Perl module Getopt::Lucid
 
+0.17
+    - Clarify 5.006 as minimum requirement; update other minimum requirements
+    - Fix for ambiguous param bug (RT#33462, patch from Torsten Link)
+
 0.16 Thu Aug 17 23:04:38 EDT 2006
     - Required Param options with validation no longer throw and error
       from failing to validate the default empty-string (fixes RT#20938)
