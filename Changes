@@ -1,9 +1,13 @@
 Revision history for Perl module Getopt::Lucid
 
-0.17
-    - Clarify 5.006 as minimum requirement; update other minimum requirements
-    - A repeated params now replaces instead of throwing an error
+0.17 Thu Feb 21 07:15:40 EST 2008
+    - Clarify 5.006 as minimum requirement; updated other minimum requirements
+    - A repeated param option now replaces instead of throwing an error
     - Fix for ambiguous param bug (RT#33462, patch from Torsten Link)
+    - Updated distribution packaging (custom Build.PL, author tests moved
+      to xt/ directory, documentation with Pod::WikiDoc, etc.)
+    - Changed to the Apache License, version 2.0; (it's clearer, relicensable,
+      and is explicit about contributions)
 
 0.16 Thu Aug 17 23:04:38 EDT 2006
     - Required Param options with validation no longer throw and error

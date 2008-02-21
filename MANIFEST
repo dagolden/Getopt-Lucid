@@ -1,5 +1,6 @@
 Build.PL
 Changes
+inc/Module/Build/WikiDoc.pm
 INSTALL
 lib/Getopt/Lucid.pm
 lib/Getopt/Lucid/Exception.pm
@@ -19,7 +20,12 @@ t/06-default-handling.t
 t/07-magic-names.t
 t/08-strict-names.t
 t/09-negation.t
-t/98-pod.t
-t/99-pod_coverage.t
 t/ErrorMessages.pm
 Todo
+xt/critic.t
+xt/perlcriticrc
+xt/pod-coverage.t
+xt/pod.t
+xt/spelling.t
+xt/stopwords.txt
+lib/Getopt/Lucid.pod

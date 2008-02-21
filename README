@@ -1,46 +1,49 @@
 NAME
     Getopt::Lucid - Clear, readable syntax for command line processing
 
+VERSION
+    This documentation describes version 0.17.
+
 SYNOPSIS
-      use Getopt::Lucid qw( :all );
-
-      # basic option specifications with aliases
-      
-  @specs = (
-        Switch("version|V"),    
-        Counter("verbose|v"), 
-        Param("config|C"), 
-        List("lib|l|I"),
-        Keypair("define"),
-        Switch("help|h")
-      );
-      
-  $opt = Getopt::Lucid->getopt( \@specs );
-      
-  $verbosity = $opt->get_verbose;
-      @libs = $opt->get_lib;
-      %defs = $opt->get_define;
-      
-  %all_options = $opt->options;
-      
-  # advanced option specifications
-
-      @adv_spec = (
-        Param("input")->required,          # required
-        Param("mode")->default("tcp"),     # defaults
-        Param("host")->needs("port"),      # dependencies
-        Param("port", qr/\d+/ )->required, # regex validation
-        Param("config", sub { -r } ),      # custom validation
-        Param("help")->anycase,            # case insensitivity
-      );
-      
-  # example with a config file
-      
-  use Config::Std;
-      if ( -r $opt->get_config ) {
-        read_config( $opt->get_config() => my %config_hash );
-        $opt->merge_defaults( $config_hash{''} ); 
-      }
+       use Getopt::Lucid qw( :all );
+     
+   # basic option specifications with aliases
+     
+   @specs = (
+         Switch("version|V"),    
+         Counter("verbose|v"), 
+         Param("config|C"), 
+         List("lib|l|I"),
+         Keypair("define"),
+         Switch("help|h")
+       );
+     
+   $opt = Getopt::Lucid->getopt( \@specs );
+     
+   $verbosity = $opt->get_verbose;
+       @libs = $opt->get_lib;
+       %defs = $opt->get_define;
+     
+   %all_options = $opt->options;
+     
+   # advanced option specifications
+     
+   @adv_spec = (
+         Param("input")->required,          # required
+         Param("mode")->default("tcp"),     # defaults
+         Param("host")->needs("port"),      # dependencies
+         Param("port", qr/\d+/ )->required, # regex validation
+         Param("config", sub { -r } ),      # custom validation
+         Param("help")->anycase,            # case insensitivity
+       );
+     
+   # example with a config file
+     
+   use Config::Std;
+       if ( -r $opt->get_config ) {
+         read_config( $opt->get_config() => my %config_hash );
+         $opt->merge_defaults( $config_hash{''} ); 
+       }
 
 DESCRIPTION
     The goal of this module is providing good code readability and clarity
@@ -78,7 +81,7 @@ USAGE
     of the option "name" followed by zero or more "aliases", with any alias
     (and each subsequent alias) separated by a vertical bar character. E.g.:
 
-      "lib|l|I" means name "lib", alias "l" and alias "I"
+       "lib|l|I" means name "lib", alias "l" and alias "I"
 
     Names and aliases must begin with an alphanumeric character, but
     subsequently may also include both underscore and dash. (E.g. both
@@ -119,7 +122,7 @@ USAGE
 
     The form of the constructor is:
 
-     Param( NAME_ARGUMENT, VALIDATION_ARGUMENT(S) );
+      Param( NAME_ARGUMENT, VALIDATION_ARGUMENT(S) );
 
     The constructor name indicates the type of option. The name argument is
     a string with the names and aliases separated by vertical bar
@@ -128,84 +131,91 @@ USAGE
 
     The five option specification constructors are:
 
-    *   "Switch()" -- a true/false value. Defaults to false. The appearance
-        of an option of this type on the command line sets it to true.
+   Switch()
+    A true/false value. Defaults to false. The appearance of an option of
+    this type on the command line sets it to true.
 
-    *   "Counter()" -- a numerical counter. Defaults to 0. The appearance of
-        an option of this type on the command line increments the counter by
-        one.
+   Counter()
+    A numerical counter. Defaults to 0. The appearance of an option of this
+    type on the command line increments the counter by one.
 
-    *   "Param()" -- a variable taking an argument. Defaults to "" (the
-        empty string). When an option of this type appears on the command
-        line, the value of the option is set in one of two ways -- appended
-        with an equals sign or from the next argument on the command line:
+   Param()
+    A variable taking an argument. Defaults to "" (the empty string). When
+    an option of this type appears on the command line, the value of the
+    option is set in one of two ways -- appended with an equals sign or from
+    the next argument on the command line:
 
-          --name=value
-          --name value
+       --name=value
+       --name value
 
-        In the case where white space is used to separate the option name
-        and the value, if the value looks like an option, an exception will
-        be thrown:
+    In the case where white space is used to separate the option name and
+    the value, if the value looks like an option, an exception will be
+    thrown:
 
-          --name --value        # throws an exception
+       --name --value        # throws an exception
 
-    *   "List()" -- like "Param()" but arguments are pushed onto a list. The
-        default list is empty.
+   List()
+    This is like "Param()" but arguments are pushed onto a list. The default
+    list is empty.
 
-    *   "Keypair()" -- a variable taking an argument pair, which are added
-        to a hash. Arguments are handled as with "Param()", but the argument
-        itself must have a key and value joined by an equals sign.
+   Keypair()
+    A variable taking an argument pair, which are added to a hash. Arguments
+    are handled as with "Param()", but the argument itself must have a key
+    and value joined by an equals sign.
 
-          --name=key=value
-          --name key=value
+       --name=key=value
+       --name key=value
 
+  Option modifiers
     An option specification can be further modified with the following
     methods, each of which return the object modified so that modifier
-    chaining is possible:
+    chaining is possible. E.g.:
 
-    *   "default()" -- changes the default for the option to the argument(s)
-        of "default()". List and hashes can take either a list or a
-        reference to an array or hash, respectively.
+       @spec = (
+         Param("input")->default("/dev/random")->needs("output"),
+         Param("output)->default("/dev/null"),
+       );
 
-          @spec = (
-            Switch("debug")->default(1),
-            Counter("verbose")->default(3),
-            Param("config")->default("/etc/profile"),
-            List("dirs")->default(qw( /var /home )),
-            Keypair("define")->default( arch => "i386" ),
-          );
+   default()
+    Changes the default for the option to the argument(s) of "default()".
+    List and hashes can take either a list or a reference to an array or
+    hash, respectively.
 
-    *   "required()" -- indicates that the option *must* appear on the
-        command line or else an exception is thrown. No argument is needed.
+       @spec = (
+         Switch("debug")->default(1),
+         Counter("verbose")->default(3),
+         Param("config")->default("/etc/profile"),
+         List("dirs")->default(qw( /var /home )),
+         Keypair("define")->default( arch => "i386" ),
+       );
 
-          @spec = (
-            Param("input")->required(),
-          );
+   required()
+    Indicates that the option *must* appear on the command line or else an
+    exception is thrown. No argument is needed.
 
-    *   "needs()" -- takes as an argument a list of option names or aliases
-        of dependencies. If the option this modifies appears on the command
-        line, each of the options given as an argument must appear on the
-        command line as well or an exception is thrown.
+       @spec = (
+         Param("input")->required(),
+       );
 
-          @spec = (
-            Param("input")->needs("output"),
-            Param("output),
-          );
+   needs()
+    Takes as an argument a list of option names or aliases of dependencies.
+    If the option this modifies appears on the command line, each of the
+    options given as an argument must appear on the command line as well or
+    an exception is thrown.
 
-    *   "anycase()" -- indicates that the associated option names/aliases
-        may appear on the command line in lowercase, uppercase, or any
-        mixture of the two. No argument is needed.
+       @spec = (
+         Param("input")->needs("output"),
+         Param("output),
+       );
 
-          @spec = (
-            Switch("help|h")->anycase(),    # "Help", "HELP", etc.
-          );
+   anycase()
+    Indicates that the associated option names/aliases may appear on the
+    command line in lowercase, uppercase, or any mixture of the two. No
+    argument is needed.
 
-    Modifiers may be chained to allow multiple modifiers. E.g.:
-
-      @spec = (
-        Param("input")->default("/dev/random")->needs("output"),
-        Param("output)->default("/dev/null"),
-      );
+       @spec = (
+         Switch("help|h")->anycase(),    # "Help", "HELP", etc.
+       );
 
   Validation
     For Param, List, and Keypair option types, the constructor may be passed
@@ -225,12 +235,12 @@ USAGE
     List and Keypair options do not have the same restriction as they are
     empty by default.
 
-      @spec = (
-        Param("copies", "\d+")->required,
-        Param("scaling", qr/\d+/)->default(100),
-        List("input", sub { -r } ),
-        Keypair("define, "os|arch", "\w+"),
-      );
+       @spec = (
+         Param("copies", "\d+")->required,
+         Param("scaling", qr/\d+/)->default(100),
+         List("input", sub { -r } ),
+         Keypair("define, "os|arch", "\w+"),
+       );
 
     For validation subroutines, the value found on the command line is
     passed as the first element of @_, and $_ is also set equal to the first
@@ -253,10 +263,10 @@ USAGE
     scanning is terminated at that point. Any options found during scanning
     are applied in order. E.g.:
 
-      @ARGV = qw( --lib /tmp --lib /var );
-      my $opt = Getopt::Lucid->getopt( [ List("lib") ] );
-      print join ", " $opt->lib;
-      # prints "/tmp, /var"
+       @ARGV = qw( --lib /tmp --lib /var );
+       my $opt = Getopt::Lucid->getopt( [ List("lib") ] );
+       print join ", " $opt->lib;
+       # prints "/tmp, /var"
 
     If an element encountered in processing begins with a dash, but is not
     recognized as a short-form or long-form option name or alias, an
@@ -272,18 +282,18 @@ USAGE
     key by placing an equals sign and the list element or key immediately
     after the option name:
 
-      --no-lib=/tmp --no-define=arch
-      # removes "/tmp" from lib and the "arch" key from define
+       --no-lib=/tmp --no-define=arch
+       # removes "/tmp" from lib and the "arch" key from define
 
     As with all options, negation is processed in order, allowing a "reset"
     in the middle of command line processing. This may be useful for those
     using command aliases who wish to "switch off" options in the alias.
     E.g, in unix:
 
-      $ alias wibble = wibble.pl --verbose
-      $ wibble --no-verbose
-      
-  # @ARGV would contain ( "--verbose", "--no-verbose" )
+       $ alias wibble = wibble.pl --verbose
+       $ wibble --no-verbose
+     
+   # @ARGV would contain ( "--verbose", "--no-verbose" )
 
     This also may have applications in post-processing configuration files
     (see "Managing Defaults and Config Files").
@@ -294,23 +304,23 @@ USAGE
     "set_NAME", where NAME represents the option name in the specification
     without any leading dashes. E.g.
 
-      @spec = (
-        Switch("--test|-t"),
-      );
-      
-  $opt = Getopt::Long->getopt( \@spec );
-      print $opt->get_test ? "True" : "False";
-      $opt->set_test(1);
+       @spec = (
+         Switch("--test|-t"),
+       );
+     
+   $opt = Getopt::Long->getopt( \@spec );
+       print $opt->get_test ? "True" : "False";
+       $opt->set_test(1);
 
     For option names with dashes, underscores should be substitued in the
     accessor calls. E.g.
 
-      @spec = (
-        Param("--input-file|-i")->required(),
-      );
-      
-  $opt = Getopt::Long->getopt( \@spec );
-      print $opt->get_input_file;
+       @spec = (
+         Param("--input-file|-i")->required(),
+       );
+     
+   $opt = Getopt::Long->getopt( \@spec );
+       print $opt->get_input_file;
 
     This can create an ambiguous case if a similar option exists with
     underscores in place of dashes. (E.g. "input_file" and "input-file".)
@@ -392,46 +402,46 @@ USAGE
     These exception may be caught using an "eval" block and allow the
     calling program to respond differently to each class of exception.
 
-      my $opt;
-      eval { $opt = Getopt::Lucid->getopt( \@spec ) };
-      if ($@) {
-        print "$@\n" && print_usage() && exit 1
-          if ref $@ eq 'Getopt::Lucid::Exception::ARGV';
-        ref $@ ? $@->rethrow : die $@;
-      }
+       my $opt;
+       eval { $opt = Getopt::Lucid->getopt( \@spec ) };
+       if ($@) {
+         print "$@\n" && print_usage() && exit 1
+           if ref $@ eq 'Getopt::Lucid::Exception::ARGV';
+         ref $@ ? $@->rethrow : die $@;
+       }
 
   Ambiguous Cases and Gotchas
-    *One-character aliases and anycase*
-          @spec = (
-            Counter("verbose|v")->anycase,
-            Switch("version|V")->anycase,
-          );
+   One-character aliases and anycase
+       @spec = (
+         Counter("verbose|v")->anycase,
+         Switch("version|V")->anycase,
+       );
 
-        Consider the spec above. By specifying "anycase" on these,
-        "verbose", "Verbose", "VERBOSE" are all acceptable, as are
-        "version", "Version" and so on. (Including long-form versions of
-        these, too, if "magic" mode is used.) However, what if the command
-        line has "-v" or even "-v -V"? In this case, the rule is that exact
-        case matches are used before case-insensitive matches are searched.
-        Thus, "-v" can only match "verbose", despite the "anycase"
-        modification, and likewise "-V" can only match "version".
+    Consider the spec above. By specifying "anycase" on these, "verbose",
+    "Verbose", "VERBOSE" are all acceptable, as are "version", "Version" and
+    so on. (Including long-form versions of these, too, if "magic" mode is
+    used.) However, what if the command line has "-v" or even "-v -V"? In
+    this case, the rule is that exact case matches are used before
+    case-insensitive matches are searched. Thus, "-v" can only match
+    "verbose", despite the "anycase" modification, and likewise "-V" can
+    only match "version".
 
-    *Identical names except for dashes and underscores*
-          @spec = (
-            Param("input-file"),
-            Switch("input_file"),
-          );
+   Identical names except for dashes and underscores
+       @spec = (
+         Param("input-file"),
+         Switch("input_file"),
+       );
 
-        Consider the spec above. These are two, separate, valid options, but
-        a call to the accessor "get_input_file" is ambiguous and may return
-        either option, depending on which first satisfies a "fuzzy-matching"
-        algorithm inside the accessor code. Avoid identical names with mixed
-        dash and underscore styles.
+    Consider the spec above. These are two, separate, valid options, but a
+    call to the accessor "get_input_file" is ambiguous and may return either
+    option, depending on which first satisfies a "fuzzy-matching" algorithm
+    inside the accessor code. Avoid identical names with mixed dash and
+    underscore styles.
 
 METHODS
-  "new()"
-     $opt = Getopt::Lucid->new( \@option_spec );
-     $opt = Getopt::Lucid->new( \@option_spec, \@option_array );
+  new()
+      $opt = Getopt::Lucid->new( \@option_spec );
+      $opt = Getopt::Lucid->new( \@option_spec, \@option_array );
 
     Creates a new Getopt::Lucid object. An array reference to an option spec
     is required as an argument. (See "USAGE" for a description of the object
@@ -441,9 +451,9 @@ METHODS
     will likely prefer to call "getopt" instead, which creates a new object
     and parses the command line with a single function call.
 
-  "append_defaults()"
-     %options = append_defaults( %config_hash );
-     %options = append_defaults( \%config_hash );
+  append_defaults()
+      %options = append_defaults( %config_hash );
+      %options = append_defaults( \%config_hash );
 
     Takes a hash or hash reference of new default values, modifies the
     stored defaults, recalculates the result of processing the command line
@@ -458,18 +468,18 @@ METHODS
     merging two hashes). Keys which are not valid names from the options
     specification will be ignored.
 
-  "defaults()"
-     %defaults = $opt->defaults();
+  defaults()
+      %defaults = $opt->defaults();
 
     Returns a hash containing current default values. Keys are names from
     the option specification (without any leading dashes). These defaults
     represent the baseline values that are modified by the parsed command
     line options.
 
-  "getopt()"
-     $opt = Getopt::Lucid->getopt( \@option_spec );
-     $opt = Getopt::Lucid->getopt( \@option_spec, \@option_array );
-     $opt->getopt();
+  getopt()
+      $opt = Getopt::Lucid->getopt( \@option_spec );
+      $opt = Getopt::Lucid->getopt( \@option_spec, \@option_array );
+      $opt->getopt();
 
     Parses the command line array (@ARGV by default). When called as a class
     function, "getopt" takes the same arguments as "new", calls "new" to
@@ -477,9 +487,9 @@ METHODS
     object. When called as an object method, it takes no arguments and
     returns itself.
 
-  "merge_defaults()"
-     %options = merge_defaults( %config_hash );
-     %options = merge_defaults( \%config_hash );
+  merge_defaults()
+    %options = merge_defaults( %config_hash ); %options = merge_defaults(
+    %config_hash );
 
     Takes a hash or hash reference of new default values, modifies the
     stored defaults, recalculates the result of processing the command line
@@ -488,23 +498,23 @@ METHODS
     defaults, overwriting any pre-existing value. Keys which are not valid
     names from the options specification will be ignored.
 
-  "names()"
-     @names = $opt->names();
+  names()
+    @names = $opt->names();
 
     Returns the list of names in the options specification. Each name
     represents a key in the hash of options provided by "options".
 
-  "options()"
-     %options = $opt->options();
+  options()
+    %options = $opt->options();
 
     Returns a deep copy of the options hash. Before "getopt" is called, its
     behavior is undefined. After "getopt" is called, this will return the
     result of modifying the defaults with the results of command line
     processing.
 
-  "replace_defaults()"
-     %options = replace_defaults( %config_hash );
-     %options = replace_defaults( \%config_hash );
+  replace_defaults()
+    %options = replace_defaults( %config_hash ); %options =
+    replace_defaults( %config_hash );
 
     Takes a hash or hash reference of new default values, replaces the
     stored defaults, recalculates the result of processing the command line
@@ -513,8 +523,8 @@ METHODS
     defaults, including those given in the option specifications. Keys which
     are not valid names from the option specification will be ignored.
 
-  "reset_defaults()"
-     %options = reset_defaults();
+  reset_defaults()
+    %options = reset_defaults();
 
     Resets the stored defaults to the original values from the options
     specification, recalculates the result of processing the command line
@@ -534,10 +544,9 @@ SEE ALSO
     *   Regexp::Common
 
 BUGS
-    Please report bugs or feature requests using the CPAN Request Tracker.
-    Bugs can be sent by email to "bug-Getopt-Lucid@rt.cpan.org" or submitted
-    using the web interface at
-    <http://rt.cpan.org/Public/Dist/Display.html?Name=Getopt-Lucid>
+    Please report any bugs or feature using the CPAN Request Tracker. Bugs
+    can be submitted through the web interface at
+    <http://rt.cpan.org/Dist/Display.html?Queue=Getopt-Lucid>
 
     When submitting a bug or request, please include a test-file or a patch
     to an existing test-file that illustrates the bug or desired feature.
@@ -545,38 +554,20 @@ BUGS
 AUTHOR
     David A. Golden (DAGOLDEN)
 
-    dagolden@cpan.org
-
-    http://dagolden.com/
-
 COPYRIGHT AND LICENSE
-    Copyright (c) 2005, 2006 by David A. Golden
+    Copyright (c) 2005 - 2008 by David A. Golden
 
-    This program is free software; you can redistribute it and/or modify it
-    under the same terms as Perl itself.
+    Licensed under the Apache License, Version 2.0 (the "License"); you may
+    not use this file except in compliance with the License. You may obtain
+    a copy of the License at <http://www.apache.org/licenses/LICENSE-2.0>
 
-    The full text of the license can be found in the LICENSE file included
-    with this module.
+    Files produced as output though the use of this software shall not be
+    considered Derivative Works, but shall be considered the original work
+    of the Licensor.
 
-DISCLAIMER OF WARRANTY
-    BECAUSE THIS SOFTWARE IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
-    FOR THE SOFTWARE, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN
-    OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES
-    PROVIDE THE SOFTWARE "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER
-    EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE
-    ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH
-    YOU. SHOULD THE SOFTWARE PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL
-    NECESSARY SERVICING, REPAIR, OR CORRECTION.
-
-    IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
-    WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR
-    REDISTRIBUTE THE SOFTWARE AS PERMITTED BY THE ABOVE LICENCE, BE LIABLE
-    TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL, OR
-    CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE
-    SOFTWARE (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING
-    RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A
-    FAILURE OF THE SOFTWARE TO OPERATE WITH ANY OTHER SOFTWARE), EVEN IF
-    SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
-    DAMAGES.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 
