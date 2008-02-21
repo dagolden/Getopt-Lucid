@@ -452,6 +452,11 @@ BEGIN {
                 result  => { "verbose" => 2, "input" => 42 },
                 desc    => "required option present"
             },            
+            { 
+                argv    => [ qw( --input info -v ) ],
+                result  => { "verbose" => 1, "input" => 'info' },
+                desc    => "required option param similar to option name"
+            },            
         ]
     };
 
@@ -505,7 +510,7 @@ BEGIN {
         label => "case insensitive",
         spec  => [
             Counter("--verbose|-v")->default(1)->anycase,
-            Param("--input|-i")->default(42),
+            Param("--input|-i|-r")->default(42),
         ],
         cases => [
             { 
@@ -517,6 +522,11 @@ BEGIN {
                 argv    => [ qw( -v ) ],
                 result  => { "verbose" => 2, "input" => 42, },
                 desc    => "two lower case options given" 
+            },            
+            { 
+                argv    => [ qw( --verBose -vV -r 23 ) ],
+                result  => { "verbose" => 4, "input" => 23, },
+                desc    => "mixed cases for case insensitive (alt)"
             },            
             { 
                 argv    => [ qw( --verBose -vV --input 23 ) ],

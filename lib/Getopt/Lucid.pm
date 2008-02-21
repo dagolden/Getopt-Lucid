@@ -1025,7 +1025,7 @@ sub _find_arg {
     return $self->{alias_hr}{$arg} if exists $self->{alias_hr}{$arg}; 
 
     for ( keys %{$self->{alias_nocase}} ) {
-        return $self->{alias_nocase}{$_} if $arg =~ /$_/i;
+        return $self->{alias_nocase}{$_} if $arg =~ /^$_$/i;
     }
 
     return undef;

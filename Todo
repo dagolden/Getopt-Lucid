@@ -1,12 +1,22 @@
 TODO list for Perl module Getopt::Lucid
 
 #--------------------------------------------------------------------------#
+# Bugs
+#--------------------------------------------------------------------------#
+
+- repeated parameters should be OK -- later should override.  Could add 
+  a "unique" modifier for original behavior
+
+#--------------------------------------------------------------------------#
 # Features to add
 #--------------------------------------------------------------------------#
 
 - create spec modifier with coderef to denote a potential command
-- commands() function to give list of command seen on command line
-- dispatch() function to call, in order, the list of commands
+    - dispatch to command immediately when seen & pass the rest of the 
+      array for further processing -- maybe gets back modified command line
+      if it comes back at all
+    - commands() function to give list of command seen on command line (?)
+    - dispatch() function to call, in order, the list of commands (?)
 - Usage information in spec and printed by a separate function
 - For keypair validation, pass *both* key and value to a validation 
   subroutine (allowing custom validation by key)

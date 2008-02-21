@@ -45,6 +45,17 @@ BEGIN {
                 desc    => "all three types in command line"
             },            
             { 
+                argv    => [ qw( --ver-bose v -rtvf fest --r test -- test ) ],
+                result  => { 
+                    "ver-bose" => 3, 
+                    "test" => 2, 
+                    "r" => 2, 
+                    "f" => "fest",
+                },
+                after   => [qw( test )],
+                desc    => "all three types in command line"
+            },            
+            { 
                 argv    => [ qw( -test ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _invalid_argument("-e"),
@@ -61,6 +72,25 @@ BEGIN {
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _param_ambiguous("f", "--test"),
                 desc    => "ambiguous param -- long form" 
+            },            
+        ]
+    };
+
+    push @good_specs, { 
+        label => "avoid ambiguity (RT 33462)",
+        spec  => [
+            Param("config|c")->required(),
+            Switch("help|h")->anycase(),
+        ],
+        cases => [
+            { 
+                argv    => [ qw( -c /home/newuat5/nas/Abilit/newuat6/test_home/Data/tdg/testdatengenerator.conf ) ],
+                result  => { 
+                    "config" => "/home/newuat5/nas/Abilit/newuat6/test_home/Data/tdg/testdatengenerator.conf", 
+                    "help" => 0,
+                },
+                after   => [],
+                desc    => "single dash option"
             },            
         ]
     };
