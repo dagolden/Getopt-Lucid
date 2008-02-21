@@ -236,16 +236,15 @@ BEGIN {
                 desc    => "bundled counter and short-style parameter"
             },            
             { 
+                argv    => [ qw( -i 42 --input 3 ) ],
+                result  => { "verbose" => 0, "input" => 3 },
+                desc    => "repeated param value" 
+            },            
+            { 
                 argv    => [ qw( -i -v ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _param_ambiguous("--input","-v"),
                 desc    => "ambiguous param value" 
-            },            
-            { 
-                argv    => [ qw( -i 42 --input 3 ) ],
-                exception   => "Getopt::Lucid::Exception::ARGV",
-                error_msg => _param_repeat("--input","3"),
-                desc    => "repeated param value" 
             },            
         ]
     };
@@ -427,8 +426,7 @@ BEGIN {
             },            
             { 
                 argv    => [ qw( i 42 input 3 ) ],
-                exception   => "Getopt::Lucid::Exception::ARGV",
-                error_msg => _param_repeat("input","3"),
+                result  => { "verbose" => 0, "input" => 3 },
                 desc    => "repeated param value" 
             },            
         ]

@@ -8,7 +8,6 @@ sub _required           {sprintf("Required option '%s' not found",@_)}
 sub _switch_twice       {sprintf("Switch used twice: %s",@_)}
 sub _switch_value       {sprintf("Switch can't take a value: %s=%s",@_)}
 sub _counter_value      {sprintf("Counter option can't take a value: %s=%s",@_)}
-sub _param_repeat       {sprintf("Parameter can't be repeated: %s=%s",@_)}
 sub _param_ambiguous    {sprintf("Ambiguous value for %s could be option: %s",@_)}
 sub _param_invalid      {sprintf("Invalid parameter %s = %s",@_)}
 sub _param_neg_value    {sprintf("Negated parameter option can't take a value: %s=%s",@_)}

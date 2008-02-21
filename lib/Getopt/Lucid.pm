@@ -1089,8 +1089,6 @@ sub _parameter {
     else {
         $value = defined $val ? $val : shift @{$self->{target}};
         $value =~ s/^$NEGATIVE(.*)$/$1/ if ! defined $val;
-        throw_argv("Parameter can't be repeated: $self->{spec}{$arg}{canon}=$value")
-            if $self->{seen}{$arg} > 1;
         throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
             if ! defined $val and _find_arg($self, $value);
         throw_argv("Invalid parameter $self->{spec}{$arg}{canon} = $value")
