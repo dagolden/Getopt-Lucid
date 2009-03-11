@@ -7,7 +7,7 @@ use Getopt::Lucid ':all';
 use Getopt::Lucid::Exception;
 use t::ErrorMessages;
 
-# Work around win32 console buffering that can show diags out of order
+# Work around buffering that can show diags out of order
 Test::More->builder->failure_output(*STDOUT) if $ENV{HARNESS_VERBOSE};
 
 sub why {

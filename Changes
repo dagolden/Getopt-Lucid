@@ -1,8 +1,10 @@
 Revision history for Perl module Getopt::Lucid
 
 0.18
-
-
+    - Options with validation specs will not fail just because the option
+      is not seen on the command line.  Validation is only done on
+      default() values provided in the spec (to ensure consistency) and on
+      options that appear on the command line.
 
 0.17 Thu Feb 21 07:15:40 EST 2008
     - Clarify 5.006 as minimum requirement; updated other minimum requirements

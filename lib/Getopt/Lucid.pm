@@ -548,6 +548,10 @@ sub _set_defaults {
             if ( $type eq "list" && defined $d && ref($d) ne "ARRAY" ); 
         throw_spec("Default for keypair '$spec->{canon}' must be hash reference")
             if ( $type eq "keypair" && defined $d && ref($d) ne "HASH" ); 
+        if (defined $d) {
+          throw_spec("Default '$spec->{canon}' = '$d' fails to validate")
+            unless _validate_value($self, $d, $spec->{valid});
+        }
         $default{$strip} = do {
             local $_ = $type;
             /switch/    ?   (defined $d ? $d: 0)   :
@@ -557,9 +561,6 @@ sub _set_defaults {
             /keypair/   ?   (defined $d ? dclone($d): {})  : 
                             undef;
         };
-        next if $spec->{required};
-        throw_spec("Default '$spec->{canon}' = '$default{$strip}' fails to validate")
-            unless _validate_value($self, $default{$strip}, $spec->{valid});
     }
     $self->{default} = \%default;
 }

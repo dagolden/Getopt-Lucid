@@ -106,6 +106,30 @@ BEGIN {
     
     
     push @good_specs, { 
+        label => "negation w/ validation",
+        spec  => [
+            Param( "mode|m", qr/test|live/ )
+        ],
+        cases => [
+            { 
+                argv    => [ qw() ],
+                result  => { 
+                    "mode" => '',
+                },
+                desc    => "no param validates"
+            },            
+            { 
+                argv    => [ qw( --no-mode ) ],
+                result  => { 
+                    "mode" => '',
+                },
+                desc    => "negated param validates"
+            },            
+        ]
+    };
+
+
+    push @good_specs, { 
         label => "required/prereq",
         spec  => [
             Switch("test")->required,
