@@ -1,12 +1,12 @@
 ---
 name: Getopt-Lucid
-version: 0.17
+version: 0.18
 author:
   - 'David A. Golden <dagolden@cpan.org>'
 abstract: 'Clear, readable syntax for command line processing'
 license: apache
 resources:
-  license: http://apache.org/licenses/LICENSE-2.0
+  license: http://www.apache.org/licenses/LICENSE-2.0.txt
   repository: http://dagolden.googlecode.com/svn/
 requires:
   Carp: 0
@@ -21,14 +21,14 @@ build_requires:
 provides:
   Getopt::Lucid:
     file: lib/Getopt/Lucid.pm
-    version: 0.17
+    version: 0.18
   Getopt::Lucid::Exception:
     file: lib/Getopt/Lucid/Exception.pm
-    version: 0.17
+    version: 0.18
   Getopt::Lucid::Spec:
     file: lib/Getopt/Lucid.pm
-    version: 0.16
-generated_by: Module::Build version 0.280801
+    version: 0
+generated_by: Module::Build version 0.32
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2

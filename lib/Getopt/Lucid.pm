@@ -3,7 +3,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 $VERSION = eval $VERSION;
 our @EXPORT_OK = qw(Switch Counter Param List Keypair);
 our %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
@@ -56,7 +56,7 @@ sub Keypair {
 }
 
 package Getopt::Lucid::Spec;
-$Getopt::Lucid::Spec::VERSION = "0.16";
+our $VERSION = $Getopt::Lucid::VERSION;
 
 sub required { my $self = shift; $self->{required} = 1; return $self };
 
@@ -112,7 +112,7 @@ sub new {
 #--------------------------------------------------------------------------#
 
 sub append_defaults {
-	my $self = shift;
+    my $self = shift;
     my %append = 
         ref $_[0] eq 'HASH' ? %{+shift} : 
         (@_ % 2 == 0) ? @_ : 
@@ -158,8 +158,8 @@ sub append_defaults {
 #--------------------------------------------------------------------------#
 
 sub defaults {
-	my ($self) = @_;
-	return %{dclone($self->{default})};
+    my ($self) = @_;
+    return %{dclone($self->{default})};
 }
 
 
@@ -168,7 +168,7 @@ sub defaults {
 #--------------------------------------------------------------------------#
 
 sub getopt {
-	my ($self,$spec,$target) = @_;
+    my ($self,$spec,$target) = @_;
     if ( $self eq 'Getopt::Lucid' ) {
         throw_usage("Getopt::Lucid->getopt() requires an option specification array reference")
             unless ref($spec) eq 'ARRAY';
@@ -213,7 +213,7 @@ sub getopt {
 #--------------------------------------------------------------------------#
 
 sub merge_defaults {
-	my $self = shift;
+    my $self = shift;
     my %merge = 
         ref $_[0] eq 'HASH' ? %{+shift} : 
         (@_ % 2 == 0) ? @_ : 
@@ -252,8 +252,8 @@ sub merge_defaults {
 #--------------------------------------------------------------------------#
 
 sub names {
-	my ($self) = @_;
-	return values %{$self->{strip}};
+    my ($self) = @_;
+    return values %{$self->{strip}};
 }
 
 
@@ -262,8 +262,8 @@ sub names {
 #--------------------------------------------------------------------------#
 
 sub options {
-	my ($self) = @_;
-    return %{dclone($self->{options})};	
+    my ($self) = @_;
+    return %{dclone($self->{options})}; 
 }
 
 #--------------------------------------------------------------------------#
@@ -271,7 +271,7 @@ sub options {
 #--------------------------------------------------------------------------#
 
 sub replace_defaults {
-	my $self = shift;
+    my $self = shift;
     my %replace = 
         ref $_[0] eq 'HASH' ? %{+shift} : 
         (@_ % 2 == 0) ? @_ : 
@@ -317,8 +317,8 @@ sub replace_defaults {
 #--------------------------------------------------------------------------#
 
 sub reset_defaults {
-	my ($self) = @_;
-    _set_defaults($self);	
+    my ($self) = @_;
+    _set_defaults($self);   
     _recalculate_options($self);
     return $self->options;
 }
@@ -328,8 +328,8 @@ sub reset_defaults {
 #--------------------------------------------------------------------------#
 
 sub _check_prereqs {
-	my ($self) = @_;
-	for my $key ( keys %{$self->{seen}} ) {
+    my ($self) = @_;
+    for my $key ( keys %{$self->{seen}} ) {
         next unless $self->{seen}{$key};
         next unless exists $self->{spec}{$key}{needs};
         for (@{$self->{spec}{$key}{needs}}) {
@@ -345,7 +345,7 @@ sub _check_prereqs {
 #--------------------------------------------------------------------------#
 
 sub _check_required {
-	my ($self) = @_;
+    my ($self) = @_;
     for ( keys %{$self->{spec}} ) {
         throw_argv("Required option '$self->{spec}{$_}{canon}' not found")
             if ( $self->{spec}{$_}{required} && ! $self->{seen}{$_} ); 
@@ -357,7 +357,7 @@ sub _check_required {
 #--------------------------------------------------------------------------#
 
 sub _counter {
-	my ($self, $arg, $val, $neg) = @_;
+    my ($self, $arg, $val, $neg) = @_;
     throw_argv("Counter option can't take a value: $self->{spec}{$arg}{canon}=$val")
         if defined $val;
     push @{$self->{parsed}}, [ $arg, 1, $neg ];
@@ -368,7 +368,7 @@ sub _counter {
 #--------------------------------------------------------------------------#
 
 sub _find_arg {
-	my ($self, $arg) = @_;
+    my ($self, $arg) = @_;
 
     $arg =~ s/^-*// unless $STRICT;
     return $self->{alias_hr}{$arg} if exists $self->{alias_hr}{$arg}; 
@@ -385,7 +385,7 @@ sub _find_arg {
 #--------------------------------------------------------------------------#
 
 sub _keypair {
-	my ($self, $arg, $val, $neg) = @_;
+    my ($self, $arg, $val, $neg) = @_;
     my ($key, $data);
     if ($neg) {
         $key = $val;
@@ -407,7 +407,7 @@ sub _keypair {
 #--------------------------------------------------------------------------#
 
 sub _list {
-	my ($self, $arg, $val, $neg) = @_;
+    my ($self, $arg, $val, $neg) = @_;
     my $value;
     if ($neg) {
         $value = $val;
@@ -428,7 +428,7 @@ sub _list {
 #--------------------------------------------------------------------------#
 
 sub _parameter {
-	my ($self, $arg, $val, $neg) = @_;
+    my ($self, $arg, $val, $neg) = @_;
     my $value;
     if ($neg) {
         throw_argv("Negated parameter option can't take a value: $self->{spec}{$arg}{canon}=$val")
@@ -450,7 +450,7 @@ sub _parameter {
 #--------------------------------------------------------------------------#
 
 sub _parse_spec {
-	my ($self,$spec) = @_;
+    my ($self,$spec) = @_;
     for my $opt ( @$spec ) {
         my $name = $opt->{name};
         my @names = split( /\|/, $name );
@@ -472,7 +472,7 @@ sub _parse_spec {
 #--------------------------------------------------------------------------#
 
 sub _recalculate_options {
-	my ($self) = @_;
+    my ($self) = @_;
     my %result;
     for ( keys %{$self->{default}} ) {
         my $x = $self->{default}{$_};
@@ -524,7 +524,7 @@ sub _recalculate_options {
 sub _regex_or_code {
     my ($value,$valid) = @_;
     return 1 unless defined $valid;
-	if ( ref($valid) eq 'CODE' ) {
+    if ( ref($valid) eq 'CODE' ) {
         local $_ = $value;
         return $valid->($value);
     } else {
@@ -537,7 +537,7 @@ sub _regex_or_code {
 #--------------------------------------------------------------------------#
 
 sub _set_defaults {
-	my ($self) = @_;
+    my ($self) = @_;
     my %default;
     for ( keys %{$self->{spec}} ) {
         my $spec = $self->{spec}{$_};
@@ -569,7 +569,7 @@ sub _set_defaults {
 #--------------------------------------------------------------------------#
 
 sub _split_equals {
-	my ($self,$raw) = @_;
+    my ($self,$raw) = @_;
     my ($arg,$val);
     if ( $raw =~ /^($NEGATIVE?$VALID_NAME|$SHORT_BUNDLE)=(.*)/ ) {
         $arg = $1;
@@ -577,7 +577,7 @@ sub _split_equals {
     } else {
         $arg = $raw;
     }
-	return ($arg, $val);
+    return ($arg, $val);
 }
 
 #--------------------------------------------------------------------------#
@@ -585,7 +585,7 @@ sub _split_equals {
 #--------------------------------------------------------------------------#
 
 sub _switch {
-	my ($self, $arg, $val, $neg) = @_;
+    my ($self, $arg, $val, $neg) = @_;
     throw_argv("Switch can't take a value: $self->{spec}{$arg}{canon}=$val")
         if defined $val;
     if (! $neg ) {
@@ -600,7 +600,7 @@ sub _switch {
 #--------------------------------------------------------------------------#
 
 sub _unbundle {
-	my ($self,$arg, $val) = @_;
+    my ($self,$arg, $val) = @_;
     if ( $arg =~ /^$SHORT_BUNDLE$/ ) { 
         my @flags = split(//,substr($arg,1));
         unshift @{$self->{target}}, ("-" . pop(@flags) . "=" . $val) 
@@ -619,7 +619,7 @@ sub _unbundle {
 
 sub _validate_prereqs {
     my ($self) = @_;
-	for my $key ( keys %{$self->{spec}} ) {
+    for my $key ( keys %{$self->{spec}} ) {
         next unless exists $self->{spec}{$key}{needs};
         my $needs = $self->{spec}{$key}{needs};
         my @prereq = ref($needs) eq 'ARRAY' ? @$needs : ( $needs );
@@ -670,7 +670,7 @@ sub _validate_spec {
 #--------------------------------------------------------------------------#
 
 sub _validate_value {
-	my ($self, $value, $valid) = @_;
+    my ($self, $value, $valid) = @_;
     return 1 unless defined $valid;
     if ( ref($value) eq 'HASH' ) {
         my $valid_key = $valid->[0];

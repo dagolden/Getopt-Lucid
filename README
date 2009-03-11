@@ -2,7 +2,7 @@ NAME
     Getopt::Lucid - Clear, readable syntax for command line processing
 
 VERSION
-    This documentation describes version 0.17.
+    This documentation describes version 0.18.
 
 SYNOPSIS
        use Getopt::Lucid qw( :all );
