@@ -1,5 +1,9 @@
 Revision history for Perl module Getopt::Lucid
 
+0.18
+
+
+
 0.17 Thu Feb 21 07:15:40 EST 2008
     - Clarify 5.006 as minimum requirement; updated other minimum requirements
     - A repeated param option now replaces instead of throwing an error
