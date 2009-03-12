@@ -1,8 +1,8 @@
 Revision history for Perl module Getopt::Lucid
 
-0.18
+0.18 Thu Mar 12 00:11:11 EDT 2009
     - Options with validation specs will not fail just because the option
-      is not seen on the command line.  Validation is only done on default
+      is not seen on the command line.  Validation is now only done on default
       values provided in the spec or in merge/append/replace (to ensure
       consistency) and on options that appear on the command line.
 
