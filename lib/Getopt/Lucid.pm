@@ -55,7 +55,8 @@ sub Keypair {
     return bless $self, "Getopt::Lucid::Spec"; 
 }
 
-package Getopt::Lucid::Spec;
+package # hide from PAUSE
+  Getopt::Lucid::Spec;
 our $VERSION = $Getopt::Lucid::VERSION;
 
 sub required { my $self = shift; $self->{required} = 1; return $self };
