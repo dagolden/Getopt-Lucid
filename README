@@ -32,7 +32,7 @@ SYNOPSIS
          Param("input")->required,          # required
          Param("mode")->default("tcp"),     # defaults
          Param("host")->needs("port"),      # dependencies
-         Param("port", qr/\d+/ )->required, # regex validation
+         Param("port", qr/\d+/ ),           # regex validation
          Param("config", sub { -r } ),      # custom validation
          Param("help")->anycase,            # case insensitivity
        );
@@ -229,18 +229,22 @@ USAGE
     values; either can be left undef to ignore validation. (More complex
     validation of specific values for specific keys must be done manually.)
 
-    Param options with validation must either be 'required' or have a
-    default value that passes the validation test. This ensures that the
-    option will contain valid data once the command line has been processed.
-    List and Keypair options do not have the same restriction as they are
-    empty by default.
+    Validation is also applied to default values provided via the
+    "default()" modifier or later modified with "append_defaults",
+    "merge_defaults", or "replace_defaults". This ensures internal
+    consistency.
 
-       @spec = (
-         Param("copies", "\d+")->required,
-         Param("scaling", qr/\d+/)->default(100),
-         List("input", sub { -r } ),
-         Keypair("define, "os|arch", "\w+"),
-       );
+    If no default is explictly provided, validation is only applied if the
+    option appears on the command line. (In other words, the built-in
+    defaults are always considered valid if the option does not appear.) If
+    this is not desired, the "required()" modifier should be used to force
+    users to provide an explicit value.
+
+       # Must be provided and is thus always validated
+       Param("width",  qr/\d+/)->required 
+     
+   # Can be left blank, but is validated if provided
+       Param("height", qr/\d+/)
 
     For validation subroutines, the value found on the command line is
     passed as the first element of @_, and $_ is also set equal to the first
@@ -371,11 +375,13 @@ USAGE
     default values:
 
     *   "merge_defaults()" -- new defaults overwrite any matching, existing
-        defaults
+        defaults. KeyPairs hashes and List arrays are replaced entirely with
+        new defaults
 
     *   "append_defaults()" -- new defaults overwrite any matching, existing
         defaults, except for Counter and List options, which have the new
-        defaults added and appended, respectively
+        defaults added and appended, respectively, and KeyPair options,
+        which are flattened into any existing default hash
 
     *   "replace_defaults()" -- new defaults replace existing defaults; any
         options not provided in the new defaults are reset to zero/empty,
@@ -488,8 +494,8 @@ METHODS
     returns itself.
 
   merge_defaults()
-    %options = merge_defaults( %config_hash ); %options = merge_defaults(
-    %config_hash );
+      %options = merge_defaults( %config_hash );
+      %options = merge_defaults( \%config_hash );
 
     Takes a hash or hash reference of new default values, modifies the
     stored defaults, recalculates the result of processing the command line
@@ -499,13 +505,13 @@ METHODS
     names from the options specification will be ignored.
 
   names()
-    @names = $opt->names();
+      @names = $opt->names();
 
     Returns the list of names in the options specification. Each name
     represents a key in the hash of options provided by "options".
 
   options()
-    %options = $opt->options();
+      %options = $opt->options();
 
     Returns a deep copy of the options hash. Before "getopt" is called, its
     behavior is undefined. After "getopt" is called, this will return the
@@ -513,8 +519,8 @@ METHODS
     processing.
 
   replace_defaults()
-    %options = replace_defaults( %config_hash ); %options =
-    replace_defaults( %config_hash );
+      %options = replace_defaults( %config_hash );
+      %options = replace_defaults( \%config_hash );
 
     Takes a hash or hash reference of new default values, replaces the
     stored defaults, recalculates the result of processing the command line
@@ -524,7 +530,7 @@ METHODS
     are not valid names from the option specification will be ignored.
 
   reset_defaults()
-    %options = reset_defaults();
+      %options = reset_defaults();
 
     Resets the stored defaults to the original values from the options
     specification, recalculates the result of processing the command line
@@ -555,7 +561,7 @@ AUTHOR
     David A. Golden (DAGOLDEN)
 
 COPYRIGHT AND LICENSE
-    Copyright (c) 2005 - 2008 by David A. Golden
+    Copyright (c) 2005 - 2009 by David A. Golden
 
     Licensed under the Apache License, Version 2.0 (the "License"); you may
     not use this file except in compliance with the License. You may obtain

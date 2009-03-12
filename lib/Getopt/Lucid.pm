@@ -118,9 +118,10 @@ sub append_defaults {
         (@_ % 2 == 0) ? @_ : 
         throw_usage("Argument to append_defaults() must be a hash or hash reference");
     for my $name ( keys %{$self->{spec}} ) {
+        my $spec = $self->{spec}{$name};
         my $strip = $self->{strip}{$name};
         next unless exists $append{$strip};
-        for ( $self->{spec}{$name}{type} ) {
+        for ( $spec->{type} ) {
             /switch|parameter/ && do { 
                 $self->{default}{$strip} = $append{$strip};
                 last;
@@ -148,6 +149,8 @@ sub append_defaults {
                 last;
             };
         }
+        throw_spec("Default '$spec->{canon}' = '$self->{default}{$strip}' fails to validate")
+          unless _validate_value($self, $self->{default}{$strip}, $spec->{valid} );
     }
     _recalculate_options($self);
     return $self->options;
@@ -219,6 +222,7 @@ sub merge_defaults {
         (@_ % 2 == 0) ? @_ : 
         throw_usage("Argument to merge_defaults() must be a hash or hash reference");
     for my $name ( keys %{$self->{spec}} ) {
+        my $spec = $self->{spec}{$name};
         my $strip = $self->{strip}{$name};
         next unless exists $merge{$strip};
         for ( $self->{spec}{$name}{type} ) {
@@ -242,6 +246,8 @@ sub merge_defaults {
                 last;
             };
         }
+        throw_spec("Default '$spec->{canon}' = '$self->{default}{$strip}' fails to validate")
+          unless _validate_value($self, $self->{default}{$strip}, $spec->{valid} );
     }
     _recalculate_options($self);
     return $self->options;
@@ -277,6 +283,7 @@ sub replace_defaults {
         (@_ % 2 == 0) ? @_ : 
         throw_usage("Argument to replace_defaults() must be a hash or hash reference");
     for my $name ( keys %{$self->{spec}} ) {
+        my $spec = $self->{spec}{$name};
         my $strip = $self->{strip}{$name};
         for ( $self->{spec}{$name}{type} ) {
             /switch|counter/ && do { 
@@ -307,6 +314,8 @@ sub replace_defaults {
                 last;
             };
         }
+        throw_spec("Default '$spec->{canon}' = '$self->{default}{$strip}' fails to validate")
+          unless _validate_value($self, $self->{default}{$strip}, $spec->{valid} );
     }
     _recalculate_options($self);
     return $self->options;
@@ -474,10 +483,10 @@ sub _parse_spec {
 sub _recalculate_options {
     my ($self) = @_;
     my %result;
-    for ( keys %{$self->{default}} ) {
-        my $x = $self->{default}{$_};
-        $result{$_} = ref($x) eq 'ARRAY' ? [ @$x ] :
-                      ref($x) eq 'HASH'  ? { %$x } : $x;
+    for my $k ( keys %{$self->{default}} ) {
+        my $d = $self->{default}{$k};
+        $result{$k} = ref($d) eq 'ARRAY' ? [ @$d ] :
+                      ref($d) eq 'HASH'  ? { %$d } : $d;
     }
     for my $opt ( @{$self->{parsed}} ) {
         my ($name, $value, $neg) = @$opt;
@@ -539,11 +548,11 @@ sub _regex_or_code {
 sub _set_defaults {
     my ($self) = @_;
     my %default;
-    for ( keys %{$self->{spec}} ) {
-        my $spec = $self->{spec}{$_};
+    for my $k ( keys %{$self->{spec}} ) {
+        my $spec = $self->{spec}{$k};
         my $d = exists ($spec->{default}) ? $spec->{default} : undef;
-        my $type = $self->{spec}{$_}{type};
-        my $strip = $self->{strip}{$_};
+        my $type = $self->{spec}{$k}{type};
+        my $strip = $self->{strip}{$k};
         throw_spec("Default for list '$spec->{canon}' must be array reference")
             if ( $type eq "list" && defined $d && ref($d) ne "ARRAY" ); 
         throw_spec("Default for keypair '$spec->{canon}' must be hash reference")
@@ -779,7 +788,7 @@ This documentation describes version %%VERSION%%.
     Param("input")->required,          # required
     Param("mode")->default("tcp"),     # defaults
     Param("host")->needs("port"),      # dependencies
-    Param("port", qr/\d+/ )->required, # regex validation
+    Param("port", qr/\d+/ ),           # regex validation
     Param("config", sub { -r } ),      # custom validation
     Param("help")->anycase,            # case insensitivity
   );
@@ -806,7 +815,7 @@ dashes)
 * Specification of defaults, required options and option dependencies
 * Validation of options with regexes or subroutines
 * Negation of options on the command line
-* Support for parsing any array, not just the default @ARGV
+* Support for parsing any array, not just the default {@ARGV}
 * Incorporation of external defaults (e.g. from a config file) with
 user control of precedence
 
@@ -980,17 +989,21 @@ applied to keys and the second is applied to values; either can be left undef
 to ignore validation.  (More complex validation of specific values for specific
 keys must be done manually.)
 
-Param options with validation must either be 'required' or have a
-default value that passes the validation test.  This ensures that the option
-will contain valid data once the command line has been processed.  List and
-Keypair options do not have the same restriction as they are empty by default.
+Validation is also applied to default values provided via the {default()}
+modifier or later modified with {append_defaults}, {merge_defaults}, or
+{replace_defaults}.  This ensures internal consistency.
 
-  @spec = (
-    Param("copies", "\d+")->required,
-    Param("scaling", qr/\d+/)->default(100),
-    List("input", sub { -r } ),
-    Keypair("define, "os|arch", "\w+"),
-  );
+If no default is explictly provided, validation is only applied if the option
+appears on the command line. (In other words, the built-in defaults are always
+considered valid if the option does not appear.)  If this is not desired, the
+{required()} modifier should be used to force users to provide an explicit
+value.
+
+  # Must be provided and is thus always validated
+  Param("width",  qr/\d+/)->required 
+
+  # Can be left blank, but is validated if provided
+  Param("height", qr/\d+/)
 
 For validation subroutines, the value found on the command line is passed as
 the first element of {@_}, and {$_} is also set equal to the first element.
@@ -1003,9 +1016,9 @@ for a ready library of validation options.
 == Parsing the Command Line
 
 Technically, Getopt::Lucid scans an array for command line options, not a
-command-line string.  By default, this array is @ARGV (though other arrays can
-be used -- see {new()}), which is typically provided by the operating system
-according to system-specific rules.  
+command-line string.  By default, this array is {@ARGV} (though other arrays
+can be used -- see {new()}), which is typically provided by the operating
+system according to system-specific rules.  
 
 When Getopt::Lucid processes the array, it scans the array in order, removing
 any specified command line options and any associated arguments, and leaving
@@ -1115,10 +1128,12 @@ processed without losing the options given on the command line.
 Getopt::Lucid provides several functions to assist in manipulating default
 values:
 
-* {merge_defaults()} -- new defaults overwrite any matching, existing defaults
+* {merge_defaults()} -- new defaults overwrite any matching, existing defaults.
+KeyPairs hashes and List arrays are replaced entirely with new defaults
 * {append_defaults()} -- new defaults overwrite any matching, existing defaults,
 except for Counter and List options, which have the new defaults added and
-appended, respectively
+appended, respectively, and KeyPair options, which are flattened into any
+existing default hash
 * {replace_defaults()} -- new defaults replace existing defaults; any options
 not provided in the new defaults are reset to zero/empty, ignoring any 
 default given in the option specification
@@ -1301,7 +1316,7 @@ David A. Golden (DAGOLDEN)
 
 = COPYRIGHT AND LICENSE
 
-Copyright (c) 2005 - 2008 by David A. Golden
+Copyright (c) 2005 - 2009 by David A. Golden
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

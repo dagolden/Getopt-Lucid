@@ -132,13 +132,12 @@ BEGIN {
             },          
             { 
                 argv    => [ ],
-                exception   => "Getopt::Lucid::Exception::ARGV",
+                exception   => "Getopt::Lucid::Exception::Spec",
                 config => {
                     "file"  => "123",
                 },
-                config_fcn => 'replace',
                 error_msg => _default_invalid("file","123",),
-                desc    => "invalid config default"
+                desc    => "invalid config"
             },
         ]
     };
@@ -168,9 +167,14 @@ while ( $trial = shift @good_specs ) {
         }
         for my $case ( @{$trial->{cases}} ) {
           for my $method ( qw/append merge replace/ ) {
+            no strict 'refs';
+            my $cmd = $method . "_defaults";
             my $gl = Getopt::Lucid->new($trial->{spec}, \@cmd_line);
             @cmd_line = @{$case->{argv}};
-            try eval { $gl->getopt };
+            try eval { 
+              $gl->getopt;
+              $gl->$cmd( $case->{config} ) if $case->{config};
+            };
             catch my $err;
             if (defined $case->{exception}) { # expected
                 ok( $err && $err->isa( $case->{exception} ), 
@@ -183,9 +187,6 @@ while ( $trial = shift @good_specs ) {
                     or diag "Exception is '$err'";
                 pass("$trial->{label} $method\_defaults\: skipping \@ARGV check");
             } else { # no exception
-                no strict 'refs';
-                my $cmd = $method . "_defaults";
-                $gl->$cmd( $case->{config} ) if $case->{config};
                 my %opts = $gl->options;
                 is_deeply( \%opts, $case->{result}{$method}, 
                     "$trial->{label} $method\_defaults\: $case->{desc}" ) or

@@ -6,14 +6,13 @@ TODO list for Perl module Getopt::Lucid
 
 - repeated parameters should be OK -- later should override.  Could add 
   a "unique" modifier for original behavior
-- append/merge_defaults not checked for validation
 
 #--------------------------------------------------------------------------#
 # Features to add
 #--------------------------------------------------------------------------#
 
 - new option types:  
-  - Version($strint) -- defaults to "--version" and preempts exceptions
+  - Version( $string ) -- defaults to "--version" and preempts exceptions
     - prints $VERSION of script
   - Help( $string ) -- defaults to "--help|-h|-?" and preempts exceptions
     - prints any usage information defined in spec?
@@ -37,9 +36,7 @@ TODO list for Perl module Getopt::Lucid
 # Bugfixes/technical/other
 #--------------------------------------------------------------------------#
 
-- test append/merge defaults
 - make STRICT an object parameter, not a global
-- Pod fix -- option merging short examples
 - test how negation is handled under $STRICT
 - write cookbook
 - refactor ugly code (module and tests)

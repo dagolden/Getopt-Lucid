@@ -39,7 +39,7 @@ This documentation describes version 0.18.
      Param("input")->required,          # required
      Param("mode")->default("tcp"),     # defaults
      Param("host")->needs("port"),      # dependencies
-     Param("port", qr/\d+/ )->required, # regex validation
+     Param("port", qr/\d+/ ),           # regex validation
      Param("config", sub { -r } ),      # custom validation
      Param("help")->anycase,            # case insensitivity
    );
@@ -85,7 +85,7 @@ Negation of options on the command line
 
 =item *
 
-Support for parsing any array, not just the default @ARGV
+Support for parsing any array, not just the default C<<< @ARGV >>>
 
 =item *
 
@@ -273,17 +273,21 @@ applied to keys and the second is applied to values; either can be left undef
 to ignore validation.  (More complex validation of specific values for specific
 keys must be done manually.)
 
-Param options with validation must either be 'required' or have a
-default value that passes the validation test.  This ensures that the option
-will contain valid data once the command line has been processed.  List and
-Keypair options do not have the same restriction as they are empty by default.
+Validation is also applied to default values provided via the C<<< default() >>>
+modifier or later modified with C<<< append_defaults >>>, C<<< merge_defaults >>>, or
+C<<< replace_defaults >>>.  This ensures internal consistency.
 
-   @spec = (
-     Param("copies", "\d+")->required,
-     Param("scaling", qr/\d+/)->default(100),
-     List("input", sub { -r } ),
-     Keypair("define, "os|arch", "\w+"),
-   );
+If no default is explictly provided, validation is only applied if the option
+appears on the command line. (In other words, the built-in defaults are always
+considered valid if the option does not appear.)  If this is not desired, the
+C<<< required() >>> modifier should be used to force users to provide an explicit
+value.
+
+   # Must be provided and is thus always validated
+   Param("width",  qr/\d+/)->required 
+ 
+   # Can be left blank, but is validated if provided
+   Param("height", qr/\d+/)
 
 For validation subroutines, the value found on the command line is passed as
 the first element of C<<< @_ >>>, and C<<< $_ >>> is also set equal to the first element.
@@ -296,9 +300,9 @@ for a ready library of validation options.
 =head2 Parsing the Command Line
 
 Technically, Getopt::Lucid scans an array for command line options, not a
-command-line string.  By default, this array is @ARGV (though other arrays can
-be used -- see C<<< new() >>>), which is typically provided by the operating system
-according to system-specific rules.  
+command-line string.  By default, this array is C<<< @ARGV >>> (though other arrays
+can be used -- see C<<< new() >>>), which is typically provided by the operating
+system according to system-specific rules.  
 
 When Getopt::Lucid processes the array, it scans the array in order, removing
 any specified command line options and any associated arguments, and leaving
@@ -430,13 +434,15 @@ values:
 
 =item *
 
-C<<< merge_defaults() >>> -- new defaults overwrite any matching, existing defaults
+C<<< merge_defaults() >>> -- new defaults overwrite any matching, existing defaults.
+KeyPairs hashes and List arrays are replaced entirely with new defaults
 
 =item *
 
 C<<< append_defaults() >>> -- new defaults overwrite any matching, existing defaults,
 except for Counter and List options, which have the new defaults added and
-appended, respectively
+appended, respectively, and KeyPair options, which are flattened into any
+existing default hash
 
 =item *
 
@@ -657,7 +663,7 @@ David A. Golden (DAGOLDEN)
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2005 - 2008 by David A. Golden
+Copyright (c) 2005 - 2009 by David A. Golden
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
