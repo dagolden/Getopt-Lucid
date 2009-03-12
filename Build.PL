@@ -30,7 +30,7 @@ $class->new(
             }],
         },
         resources => {
-            repository => 'http://dagolden.googlecode.com/svn/'
+            repository => 'http://github.com/dagolden/getopt-lucid/'
         },
     },
 )->create_build_script;

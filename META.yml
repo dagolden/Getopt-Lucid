@@ -7,7 +7,7 @@ abstract: 'Clear, readable syntax for command line processing'
 license: apache
 resources:
   license: http://apache.org/licenses/LICENSE-2.0
-  repository: http://dagolden.googlecode.com/svn/
+  repository: http://github.com/dagolden/getopt-lucid/
 requires:
   Carp: 0
   Exception::Class: 1.23
@@ -25,9 +25,6 @@ provides:
   Getopt::Lucid::Exception:
     file: lib/Getopt/Lucid/Exception.pm
     version: 0.18
-  Getopt::Lucid::Spec:
-    file: lib/Getopt/Lucid.pm
-    version: 0
 generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
