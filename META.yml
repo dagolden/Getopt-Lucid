@@ -6,7 +6,7 @@ author:
 abstract: 'Clear, readable syntax for command line processing'
 license: apache
 resources:
-  license: http://www.apache.org/licenses/LICENSE-2.0.txt
+  license: http://apache.org/licenses/LICENSE-2.0
   repository: http://dagolden.googlecode.com/svn/
 requires:
   Carp: 0
@@ -28,7 +28,7 @@ provides:
   Getopt::Lucid::Spec:
     file: lib/Getopt/Lucid.pm
     version: 0
-generated_by: Module::Build version 0.32
+generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
   version: 1.2

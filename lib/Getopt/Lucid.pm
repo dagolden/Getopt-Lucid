@@ -1232,8 +1232,8 @@ called as an object method, it takes no arguments and returns itself.
 
 == merge_defaults()
 
-%options = merge_defaults( %config_hash );
-%options = merge_defaults( \%config_hash );
+ %options = merge_defaults( %config_hash );
+ %options = merge_defaults( \%config_hash );
 
 Takes a hash or hash reference of new default values, modifies the stored
 defaults, recalculates the result of processing the command line with the
@@ -1244,14 +1244,14 @@ specification will be ignored.
 
 == names()
 
-@names = $opt->names();
+ @names = $opt->names();
 
 Returns the list of names in the options specification.  Each name represents a
 key in the hash of options provided by {options}.
 
 == options()
 
-%options = $opt->options();
+ %options = $opt->options();
 
 Returns a deep copy of the options hash.  Before {getopt} is called, its 
 behavior is undefined.  After {getopt} is called, this will return the
@@ -1259,8 +1259,8 @@ result of modifying the defaults with the results of command line processing.
 
 == replace_defaults()
 
-%options = replace_defaults( %config_hash );
-%options = replace_defaults( \%config_hash );
+ %options = replace_defaults( %config_hash );
+ %options = replace_defaults( \%config_hash );
 
 Takes a hash or hash reference of new default values, replaces the stored
 defaults, recalculates the result of processing the command line with the
@@ -1271,7 +1271,7 @@ option specification will be ignored.
 
 == reset_defaults()
 
-%options = reset_defaults();
+ %options = reset_defaults();
 
 Resets the stored defaults to the original values from the options
 specification, recalculates the result of processing the command line with the
