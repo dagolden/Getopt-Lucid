@@ -59,6 +59,15 @@ package # hide from PAUSE
   Getopt::Lucid::Spec;
 our $VERSION = $Getopt::Lucid::VERSION;
 
+# alternate way to specify validation
+sub valid {
+    my $self = shift;
+    throw_spec("valid() is not supported for '$self->{type}' options")
+      unless grep { $self->{$type} eq $_ } qw/param list keypair/;
+    $self->{valid} = $self->{type} eq 'keypair' ? [ @_ ] : shift;
+    return $self;
+}
+    
 sub required { my $self = shift; $self->{required} = 1; return $self };
 
 sub default {  
@@ -789,8 +798,8 @@ This documentation describes version %%VERSION%%.
     Param("input")->required,          # required
     Param("mode")->default("tcp"),     # defaults
     Param("host")->needs("port"),      # dependencies
-    Param("port", qr/\d+/ ),           # regex validation
-    Param("config", sub { -r } ),      # custom validation
+    Param("port")->valid(qr/\d+/),     # regex validation
+    Param("config")->valid(sub { -r }),# custom validation
     Param("help")->anycase,            # case insensitivity
   );
 
@@ -867,19 +876,17 @@ and "-h" are valid for use on the command line.
 == Option Specification Constructors
 
 Options specifications are provided to Getopt::Lucid in an array.  Entries in
-the array must be created with one of five special constructor functions that
-return a specification object.  These constructor functions may be imported
-either individually or as a group using the import tag ":all" (e.g. 
+the array must be created with one of several special constructor functions
+that return a specification object.  These constructor functions may be
+imported either individually or as a group using the import tag ":all" (e.g.
 {use Getopt::Lucid qw(:all);}).
 
 The form of the constructor is:
 
- Param( NAME_ARGUMENT, VALIDATION_ARGUMENT(S) );
+ TYPE( NAME_ARGUMENT );
 
-The constructor name indicates the type of option.  The name argument is a string
-with the names and aliases separated by vertical bar characters.  Validation
-arguments may or may not be relevant, depending on the type of option.  (See
-[/Validation] below.)  
+The constructor function name indicates the type of option.  The name argument
+is a string with the names and aliases separated by vertical bar characters.
 
 The five option specification constructors are:
 
@@ -933,6 +940,19 @@ possible.  E.g.:
     Param("output)->default("/dev/null"),
   );
 
+=== valid() 
+
+Sets the validation parameter(s) for an option.
+
+  @spec = (
+    Param("port")->valid(qr/\d+/),          # regex validation
+    Param("config")->valid(sub { -r }),     # custom validation
+    Keypair("define")
+      ->valid(\&_valid_key, \&valid_value), # keypairs take two
+  );
+
+See the [/Validation] section, below, for more.
+
 === default() 
 
 Changes the default for the option to the argument(s) of
@@ -980,8 +1000,8 @@ argument is needed.
 
 == Validation
 
-For Param, List, and Keypair option types, the constructor may be passed an
-optional validation specification.  Values provided on the command line will be
+The Param, List, and Keypair option types may be provided an optional
+validation specification.  Values provided on the command line will be
 validated according to the specification or an exception will be thrown.  
 
 A validation specification can be either a regular expression, or a reference
@@ -1001,10 +1021,10 @@ considered valid if the option does not appear.)  If this is not desired, the
 value.
 
   # Must be provided and is thus always validated
-  Param("width",  qr/\d+/)->required 
+  Param("width")->valid(qr/\d+/)->required 
 
   # Can be left blank, but is validated if provided
-  Param("height", qr/\d+/)
+  Param("height")->valid(qr/\d+/)
 
 For validation subroutines, the value found on the command line is passed as
 the first element of {@_}, and {$_} is also set equal to the first element.
@@ -1013,6 +1033,13 @@ validates if the subroutine returns a true value.
 
 For validation with regular expressions, consider using [Regexp::Common]
 for a ready library of validation options.
+
+Older versions of Getopt::Lucid used validation arguments provided in the Spec
+constructor.  This is still supported, but is deprecated and discouraged. It
+may be removed in a future version of Getopt::Lucid.
+
+  # deprecated
+  Param("height", qr/\d+/)
 
 == Parsing the Command Line
 
@@ -1070,6 +1097,8 @@ leading dashes. E.g.
 
   @spec = (
     Switch("--test|-t"),
+    List("--lib|-L"),
+    Keypair("--define|-D"),
   );
 
   $opt = Getopt::Long->getopt( \@spec );
@@ -1090,6 +1119,11 @@ This can create an ambiguous case if a similar option exists with underscores
 in place of dashes.  (E.g. "input_file" and "input-file".)  Users can safely
 avoid these problems by choosing to use either dashes or underscores
 exclusively and not mixing the two styles.
+
+List and Keypair options are returned as flattened lists:
+
+  my @lib = $opt->get_lib;
+  my %define = $opt->get_define;
 
 Using the "set_NAME" mutator is not recommended and should be used with
 caution.  No validation is performed and changes will be lost if the results of

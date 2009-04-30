@@ -22,15 +22,13 @@ sub why {
 
 my ($num_tests, @good_specs);
 
-BEGIN {
-    
     push @good_specs, { 
         label => "test",
         spec  => [
             Switch("test|t")->default(1),
             Counter("verbose|v")->default(2),
-            Param("file|f",qr/[a-z]+/)->default("foo"),
-            List("lib|l",qr/[\/\w]+/)->default(qw( /var /tmp )),
+            Param("file|f")->valid(qr/[a-z]+/)->default("foo"),
+            List("lib|l")->default(qw( /var /tmp ))->valid(qr/[\/\w]+/),
             Keypair("def|d","os|arch",qr/\w+/)->default(
               {os => 'linux', arch => 'i386'}
             ),
@@ -142,8 +140,6 @@ BEGIN {
         ]
     };
     
-} #BEGIN 
-
 for my $t (@good_specs) {
     $num_tests += 1 + 6 * @{$t->{cases}};
 }
