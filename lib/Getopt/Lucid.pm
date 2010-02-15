@@ -63,7 +63,7 @@ our $VERSION = $Getopt::Lucid::VERSION;
 sub valid {
     my $self = shift;
     throw_spec("valid() is not supported for '$self->{type}' options")
-      unless grep { $self->{$type} eq $_ } qw/param list keypair/;
+      unless grep { $self->{type} eq $_ } qw/param list keypair/;
     $self->{valid} = $self->{type} eq 'keypair' ? [ @_ ] : shift;
     return $self;
 }
@@ -220,6 +220,7 @@ sub getopt {
     return $self;
 }
 
+BEGIN { *getopts = \&getopt }; # handy alias
 
 #--------------------------------------------------------------------------#
 # merge_defaults()
@@ -1279,6 +1280,8 @@ Parses the command line array (@ARGV by default).  When called as a class
 function, {getopt} takes the same arguments as {new}, calls {new} to create
 an object before parsing the command line, and returns the new object.  When
 called as an object method, it takes no arguments and returns itself.
+
+For convenience, C<getopts()> is a alias for C<getopt()>.
 
 == merge_defaults()
 
