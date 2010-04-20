@@ -32,7 +32,7 @@ sub import {
     my $caller = caller(0);
     {
         no strict 'refs';
-        *{$caller."::$_"} = *{__PACKAGE__."::$_"} 
+        *{$caller."::$_"} = *{__PACKAGE__."::$_"}
             for qw( throw_spec throw_argv throw_usage);
     }
 }

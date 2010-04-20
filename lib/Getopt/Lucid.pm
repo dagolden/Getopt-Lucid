@@ -31,28 +31,28 @@ use vars qw( $STRICT );
 $STRICT = 0;
 
 
-sub Switch  { 
+sub Switch  {
     return bless { name => shift, type => 'switch' },
-                 "Getopt::Lucid::Spec"; 
+                 "Getopt::Lucid::Spec";
 }
-sub Counter { 
+sub Counter {
     return bless { name => shift, type => 'counter' },
-                 "Getopt::Lucid::Spec"; 
+                 "Getopt::Lucid::Spec";
 }
-sub Param   { 
+sub Param   {
     my $self = { name => shift, type => 'parameter' };
     $self->{valid} = shift if @_;
-    return bless $self, "Getopt::Lucid::Spec"; 
+    return bless $self, "Getopt::Lucid::Spec";
 }
-sub List    { 
+sub List    {
     my $self = { name => shift, type => 'list' };
     $self->{valid} = shift if @_;
-    return bless $self, "Getopt::Lucid::Spec"; 
+    return bless $self, "Getopt::Lucid::Spec";
 }
-sub Keypair { 
+sub Keypair {
     my $self = { name => shift, type => 'keypair' };
     $self->{valid} = [ @_ ] if scalar @_;
-    return bless $self, "Getopt::Lucid::Spec"; 
+    return bless $self, "Getopt::Lucid::Spec";
 }
 
 package # hide from PAUSE
@@ -67,10 +67,10 @@ sub valid {
     $self->{valid} = $self->{type} eq 'keypair' ? [ @_ ] : shift;
     return $self;
 }
-    
+
 sub required { my $self = shift; $self->{required} = 1; return $self };
 
-sub default {  
+sub default {
     my $self = shift;
     my $type = $self->{type};
     if ($self->{type} eq 'keypair') {
@@ -88,7 +88,7 @@ sub default {
         $self->{default} = [ @_ ];
     }
     else {
-        $self->{default} = shift; 
+        $self->{default} = shift;
     }
     return $self
 };
@@ -123,16 +123,16 @@ sub new {
 
 sub append_defaults {
     my $self = shift;
-    my %append = 
-        ref $_[0] eq 'HASH' ? %{+shift} : 
-        (@_ % 2 == 0) ? @_ : 
+    my %append =
+        ref $_[0] eq 'HASH' ? %{+shift} :
+        (@_ % 2 == 0) ? @_ :
         throw_usage("Argument to append_defaults() must be a hash or hash reference");
     for my $name ( keys %{$self->{spec}} ) {
         my $spec = $self->{spec}{$name};
         my $strip = $self->{strip}{$name};
         next unless exists $append{$strip};
         for ( $spec->{type} ) {
-            /switch|parameter/ && do { 
+            /switch|parameter/ && do {
                 $self->{default}{$strip} = $append{$strip};
                 last;
             };
@@ -199,14 +199,14 @@ sub getopt {
             $neg ?
                 $self->{seen}{$arg} = 0 :
                 $self->{seen}{$arg}++;
-            for ($self->{spec}{$arg}{type}) { 
+            for ($self->{spec}{$arg}{type}) {
                 /switch/    ? _switch   ($self, $arg, $val, $neg) :
                 /counter/   ? _counter  ($self, $arg, $val, $neg) :
                 /parameter/ ? _parameter($self, $arg, $val, $neg) :
                 /list/      ? _list     ($self, $arg, $val, $neg) :
                 /keypair/   ? _keypair  ($self, $arg, $val, $neg) :
                               throw_usage("can't handle type '$_'");
-            } 
+            }
         } else {
             throw_argv("Invalid argument: $orig")
                 if $orig =~ /^-./; # invalid if looks like it could be an arg;
@@ -228,16 +228,16 @@ BEGIN { *getopts = \&getopt }; # handy alias
 
 sub merge_defaults {
     my $self = shift;
-    my %merge = 
-        ref $_[0] eq 'HASH' ? %{+shift} : 
-        (@_ % 2 == 0) ? @_ : 
+    my %merge =
+        ref $_[0] eq 'HASH' ? %{+shift} :
+        (@_ % 2 == 0) ? @_ :
         throw_usage("Argument to merge_defaults() must be a hash or hash reference");
     for my $name ( keys %{$self->{spec}} ) {
         my $spec = $self->{spec}{$name};
         my $strip = $self->{strip}{$name};
         next unless exists $merge{$strip};
         for ( $self->{spec}{$name}{type} ) {
-            /switch|counter|parameter/ && do { 
+            /switch|counter|parameter/ && do {
                 $self->{default}{$strip} = $merge{$strip};
                 last;
             };
@@ -280,7 +280,7 @@ sub names {
 
 sub options {
     my ($self) = @_;
-    return %{dclone($self->{options})}; 
+    return %{dclone($self->{options})};
 }
 
 #--------------------------------------------------------------------------#
@@ -289,19 +289,19 @@ sub options {
 
 sub replace_defaults {
     my $self = shift;
-    my %replace = 
-        ref $_[0] eq 'HASH' ? %{+shift} : 
-        (@_ % 2 == 0) ? @_ : 
+    my %replace =
+        ref $_[0] eq 'HASH' ? %{+shift} :
+        (@_ % 2 == 0) ? @_ :
         throw_usage("Argument to replace_defaults() must be a hash or hash reference");
     for my $name ( keys %{$self->{spec}} ) {
         my $spec = $self->{spec}{$name};
         my $strip = $self->{strip}{$name};
         for ( $self->{spec}{$name}{type} ) {
-            /switch|counter/ && do { 
+            /switch|counter/ && do {
                 $self->{default}{$strip} = $replace{$strip} || 0;
                 last;
             };
-            /parameter/ && do { 
+            /parameter/ && do {
                 $self->{default}{$strip} = $replace{$strip} || "";
                 last;
             };
@@ -309,7 +309,7 @@ sub replace_defaults {
                 throw_usage("Option '$strip' in replace_defaults() must be scalar or array reference")
                     if ref($replace{$strip}) && ref($replace{$strip}) ne 'ARRAY';
                 if ( exists $replace{$strip} ) {
-                    $replace{$strip} = ref($replace{$strip}) eq 'ARRAY' ? 
+                    $replace{$strip} = ref($replace{$strip}) eq 'ARRAY' ?
                                        $replace{$strip} : [ $replace{$strip} ];
                 } else {
                     $replace{$strip} = [];
@@ -338,7 +338,7 @@ sub replace_defaults {
 
 sub reset_defaults {
     my ($self) = @_;
-    _set_defaults($self);   
+    _set_defaults($self);
     _recalculate_options($self);
     return $self->options;
 }
@@ -368,7 +368,7 @@ sub _check_required {
     my ($self) = @_;
     for ( keys %{$self->{spec}} ) {
         throw_argv("Required option '$self->{spec}{$_}{canon}' not found")
-            if ( $self->{spec}{$_}{required} && ! $self->{seen}{$_} ); 
+            if ( $self->{spec}{$_}{required} && ! $self->{seen}{$_} );
     }
 }
 
@@ -391,7 +391,7 @@ sub _find_arg {
     my ($self, $arg) = @_;
 
     $arg =~ s/^-*// unless $STRICT;
-    return $self->{alias_hr}{$arg} if exists $self->{alias_hr}{$arg}; 
+    return $self->{alias_hr}{$arg} if exists $self->{alias_hr}{$arg};
 
     for ( keys %{$self->{alias_nocase}} ) {
         return $self->{alias_nocase}{$_} if $arg =~ /^$_$/i;
@@ -416,8 +416,8 @@ sub _keypair {
             unless $value =~ /[^=]+=.+/;
         ($key, $data) = ( $value =~ /^([^=]*)=(.*)$/ ) ;
         throw_argv("Invalid keypair '$self->{spec}{$arg}{canon}': $key => $data")
-            unless _validate_value($self, { $key => $data }, 
-                               $self->{spec}{$arg}{valid});    
+            unless _validate_value($self, { $key => $data },
+                               $self->{spec}{$arg}{valid});
     }
     push @{$self->{parsed}}, [ $arg, [ $key, $data ], $neg ];
 }
@@ -438,7 +438,7 @@ sub _list {
         throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
             if ! defined $val and _find_arg($self, $value);
         throw_argv("Invalid list option $self->{spec}{$arg}{canon} = $value")
-            unless _validate_value($self, $value, $self->{spec}{$arg}{valid});    
+            unless _validate_value($self, $value, $self->{spec}{$arg}{valid});
     }
     push @{$self->{parsed}}, [ $arg, $value, $neg ];
 }
@@ -460,7 +460,7 @@ sub _parameter {
         throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
             if ! defined $val and _find_arg($self, $value);
         throw_argv("Invalid parameter $self->{spec}{$arg}{canon} = $value")
-            unless _validate_value($self, $value, $self->{spec}{$arg}{valid});    
+            unless _validate_value($self, $value, $self->{spec}{$arg}{valid});
     }
     push @{$self->{parsed}}, [ $arg, $value, $neg ];
 }
@@ -503,34 +503,34 @@ sub _recalculate_options {
         my ($name, $value, $neg) = @$opt;
         for ($self->{spec}{$name}{type}) {
             my $strip = $self->{strip}{$name};
-            /switch/    && do { 
-                $result{$strip} = $neg ? 0 : $value; 
-                last; 
+            /switch/    && do {
+                $result{$strip} = $neg ? 0 : $value;
+                last;
             };
-            /counter/   && do { 
-                $result{$strip} = $neg ? 0 : $result{$strip} + $value; 
-                last; 
+            /counter/   && do {
+                $result{$strip} = $neg ? 0 : $result{$strip} + $value;
+                last;
             };
-            /parameter/ && do { 
-                $result{$strip} = $neg ? "" : $value; 
-                last; 
+            /parameter/ && do {
+                $result{$strip} = $neg ? "" : $value;
+                last;
             };
-            /list/      && do { 
-                if ($neg) {  
-                    $result{$strip} = $value ? 
+            /list/      && do {
+                if ($neg) {
+                    $result{$strip} = $value ?
                         [ grep { $_ ne $value } @{$result{$strip}} ] :
-                        []; 
+                        [];
                 }
                 else { push @{$result{$strip}}, $value }
-                last; 
+                last;
             };
-            /keypair/   && do { 
-                if ($neg) { 
+            /keypair/   && do {
+                if ($neg) {
                     if ($value->[0]) { delete $result{$strip}{$value->[0]} }
-                    else { $result{$strip} = {} } 
+                    else { $result{$strip} = {} }
                 }
-                else { $result{$strip}{$value->[0]} = $value->[1]}; 
-                last; 
+                else { $result{$strip}{$value->[0]} = $value->[1]};
+                last;
             };
         }
     }
@@ -565,9 +565,9 @@ sub _set_defaults {
         my $type = $self->{spec}{$k}{type};
         my $strip = $self->{strip}{$k};
         throw_spec("Default for list '$spec->{canon}' must be array reference")
-            if ( $type eq "list" && defined $d && ref($d) ne "ARRAY" ); 
+            if ( $type eq "list" && defined $d && ref($d) ne "ARRAY" );
         throw_spec("Default for keypair '$spec->{canon}' must be hash reference")
-            if ( $type eq "keypair" && defined $d && ref($d) ne "HASH" ); 
+            if ( $type eq "keypair" && defined $d && ref($d) ne "HASH" );
         if (defined $d) {
           throw_spec("Default '$spec->{canon}' = '$d' fails to validate")
             unless _validate_value($self, $d, $spec->{valid});
@@ -576,9 +576,9 @@ sub _set_defaults {
             local $_ = $type;
             /switch/    ?   (defined $d ? $d: 0)   :
             /counter/   ?   (defined $d ? $d: 0)   :
-            /parameter/ ?   (defined $d ? $d: "")  : 
+            /parameter/ ?   (defined $d ? $d: "")  :
             /list/      ?   (defined $d ? dclone($d): [])  :
-            /keypair/   ?   (defined $d ? dclone($d): {})  : 
+            /keypair/   ?   (defined $d ? dclone($d): {})  :
                             undef;
         };
     }
@@ -622,10 +622,10 @@ sub _switch {
 
 sub _unbundle {
     my ($self,$arg, $val) = @_;
-    if ( $arg =~ /^$SHORT_BUNDLE$/ ) { 
+    if ( $arg =~ /^$SHORT_BUNDLE$/ ) {
         my @flags = split(//,substr($arg,1));
-        unshift @{$self->{target}}, ("-" . pop(@flags) . "=" . $val) 
-            if defined $val; 
+        unshift @{$self->{target}}, ("-" . pop(@flags) . "=" . $val)
+            if defined $val;
         for ( reverse @flags ) {
             unshift @{$self->{target}}, "-$_";
         }
@@ -650,7 +650,7 @@ sub _validate_prereqs {
             $_ = _find_arg($self,$_);
         }
         $self->{spec}{$key}{needs} = \@prereq;
-    }   
+    }
 }
 
 
@@ -664,7 +664,7 @@ sub _validate_spec {
         my $alt_name = $name;
         $alt_name =~ s/^-*// unless $STRICT;
         throw_spec(
-            "'$name' is not a valid option name/alias" 
+            "'$name' is not a valid option name/alias"
         ) unless $name =~ /^$VALID_NAME$/;
         throw_spec(
             "'$name' is not unique"
@@ -737,14 +737,14 @@ sub AUTOLOAD {
                 last SEARCH;
             }
         }
-        
+
         # throw if no valid option was found
         throw_usage("Can't $action unknown option '$maybe_opt'")
             if ! $opt;
 
         # handle the accessor if an option was found
         if ($action eq "set") {
-            $self->{options}{$opt} = 
+            $self->{options}{$opt} =
                 ref($self->{options}{$opt}) eq 'ARRAY' ? [@_] :
                 ref($self->{options}{$opt}) eq 'HASH'  ? {@_} : shift;
 
@@ -777,9 +777,9 @@ This documentation describes version %%VERSION%%.
   # basic option specifications with aliases
 
   @specs = (
-    Switch("version|V"),    
-    Counter("verbose|v"), 
-    Param("config|C"), 
+    Switch("version|V"),
+    Counter("verbose|v"),
+    Param("config|C"),
     List("lib|l|I"),
     Keypair("define"),
     Switch("help|h")
@@ -809,7 +809,7 @@ This documentation describes version %%VERSION%%.
   use Config::Std;
   if ( -r $opt->get_config ) {
     read_config( $opt->get_config() => my %config_hash );
-    $opt->merge_defaults( $config_hash{''} ); 
+    $opt->merge_defaults( $config_hash{''} );
   }
 
 = DESCRIPTION
@@ -834,7 +834,7 @@ user control of precedence
 
 == Option Styles, Naming and "Strictness"
 
-Getopt::Lucid support three kinds of option styles: long-style ("--foo"), 
+Getopt::Lucid support three kinds of option styles: long-style ("--foo"),
 short-style ("-f") and bareword style ("foo").  Short-style options
 are automatically unbundled during command line processing if a single dash
 is followed by more than one letter (e.g. "-xzf" becomes "-x -z -f" ).
@@ -849,7 +849,7 @@ Names and aliases must begin with an alphanumeric character, but subsequently
 may also include both underscore and dash.  (E.g. both "input-file" and
 "input_file" are valid.)  While names and aliases are interchangeable
 when provided on the command line, the "name" portion is used with the accessors
-for each option (see [/Accessors and Mutators]).  
+for each option (see [/Accessors and Mutators]).
 
 Any of the names and aliases in the specification may be given in any of the
 three styles.  By default, Getopt::Lucid works in "magic" mode, in which option
@@ -867,9 +867,9 @@ the command line as either "--foo" or "foo"
 In practice, this means that the specification need not use dashes, but if
 used on the command line, they will be treated appropriately.
 
-Alternatively, Getopt::Lucid can operate in "strict" mode by setting 
+Alternatively, Getopt::Lucid can operate in "strict" mode by setting
 {$Getopt::Lucid::STRICT} to a true value.  In strict mode, option names
-and aliases may still be specified in any of the three styles, but they 
+and aliases may still be specified in any of the three styles, but they
 will only be parsed from the command line if they are used in exactly
 the same style.  E.g., given the name and alias "--help|-h", only "--help"
 and "-h" are valid for use on the command line.
@@ -891,14 +891,14 @@ is a string with the names and aliases separated by vertical bar characters.
 
 The five option specification constructors are:
 
-=== Switch() 
+=== Switch()
 
 A true/false value.  Defaults to false.  The appearance
 of an option of this type on the command line sets it to true.
 
-=== Counter() 
+=== Counter()
 
-A numerical counter.  Defaults to 0.  The appearance 
+A numerical counter.  Defaults to 0.  The appearance
 of an option of this type on the command line increments the counter by one.
 
 === Param()
@@ -911,7 +911,7 @@ next argument on the command line:
   --name=value
   --name value
 
-In the case where white space is used to separate the option name and the 
+In the case where white space is used to separate the option name and the
 value, if the value looks like an option, an exception will be thrown:
 
   --name --value        # throws an exception
@@ -941,7 +941,7 @@ possible.  E.g.:
     Param("output)->default("/dev/null"),
   );
 
-=== valid() 
+=== valid()
 
 Sets the validation parameter(s) for an option.
 
@@ -954,7 +954,7 @@ Sets the validation parameter(s) for an option.
 
 See the [/Validation] section, below, for more.
 
-=== default() 
+=== default()
 
 Changes the default for the option to the argument(s) of
 {default()}.  List and hashes can take either a list or a reference to an
@@ -982,14 +982,14 @@ line or else an exception is thrown.  No argument is needed.
 Takes as an argument a list of option names or aliases of
 dependencies.  If the option this modifies appears on the command line, each of
 the options given as an argument must appear on the command line as well or an
-exception is thrown. 
+exception is thrown.
 
   @spec = (
     Param("input")->needs("output"),
     Param("output),
   );
 
-=== anycase() 
+=== anycase()
 
 Indicates that the associated option names/aliases may appear
 on the command line in lowercase, uppercase, or any mixture of the two.  No
@@ -1003,7 +1003,7 @@ argument is needed.
 
 The Param, List, and Keypair option types may be provided an optional
 validation specification.  Values provided on the command line will be
-validated according to the specification or an exception will be thrown.  
+validated according to the specification or an exception will be thrown.
 
 A validation specification can be either a regular expression, or a reference
 to a subroutine.  Keypairs take up to two validation specifiers.  The first is
@@ -1022,7 +1022,7 @@ considered valid if the option does not appear.)  If this is not desired, the
 value.
 
   # Must be provided and is thus always validated
-  Param("width")->valid(qr/\d+/)->required 
+  Param("width")->valid(qr/\d+/)->required
 
   # Can be left blank, but is validated if provided
   Param("height")->valid(qr/\d+/)
@@ -1047,7 +1047,7 @@ may be removed in a future version of Getopt::Lucid.
 Technically, Getopt::Lucid scans an array for command line options, not a
 command-line string.  By default, this array is {@ARGV} (though other arrays
 can be used -- see {new()}), which is typically provided by the operating
-system according to system-specific rules.  
+system according to system-specific rules.
 
 When Getopt::Lucid processes the array, it scans the array in order, removing
 any specified command line options and any associated arguments, and leaving
@@ -1061,7 +1061,7 @@ Any options found during scanning are applied in order.  E.g.:
   # prints "/tmp, /var"
 
 If an element encountered in processing begins with a dash, but is not
-recognized as a short-form or long-form option name or alias, an exception 
+recognized as a short-form or long-form option name or alias, an exception
 will be thrown.
 
 == Negation
@@ -1137,28 +1137,28 @@ references.
 A typical problem for command-line option processing is the precedence
 relationship between default option values specified within the program,
 default option values stored in a configuration file or in environment
-variables, and option values specified on the command-line, particularly 
+variables, and option values specified on the command-line, particularly
 when the command-line specifies an alternate configuration file.
 
 Getopt::Lucid takes the following approach to this problem:
 
-* Initial default values may be specified as part of the option 
+* Initial default values may be specified as part of the option
 specification (using the {default()} modifier)
 * Default values from the option specification may be modified or replaced
-entirely with default values provided in an external hash 
+entirely with default values provided in an external hash
 (such as from a standard config file or environment variables)
 * When the command-line array is processed, options and their arguments
 are stored in the order they appeared in the command-line array
-* The stored options are applied in-order to modify or replace the set of 
+* The stored options are applied in-order to modify or replace the set of
 "current" default option values
 * If default values are subsequently changed (such as from an alternative
-configuration file), the stored options are re-applied in-order to the 
+configuration file), the stored options are re-applied in-order to the
 new set of default option values
 
 With this approach, the resulting option set is always the result of applying
-options (or negations) from the command-line array to a set of default-values.  Users have 
+options (or negations) from the command-line array to a set of default-values.  Users have
 complete freedom to apply whatever precedence rules they wish to the default
-values and may even change default values after the command-line array is 
+values and may even change default values after the command-line array is
 processed without losing the options given on the command line.
 
 Getopt::Lucid provides several functions to assist in manipulating default
@@ -1171,7 +1171,7 @@ except for Counter and List options, which have the new defaults added and
 appended, respectively, and KeyPair options, which are flattened into any
 existing default hash
 * {replace_defaults()} -- new defaults replace existing defaults; any options
-not provided in the new defaults are reset to zero/empty, ignoring any 
+not provided in the new defaults are reset to zero/empty, ignoring any
 default given in the option specification
 * {reset_defaults()} -- returns defaults to values given in the options
 specification
@@ -1179,15 +1179,15 @@ specification
 == Exceptions and Error Handling
 
 Getopt::Lucid uses [Exception::Class] for exceptions.  When a major error
-occurs, Getopt::Lucid will die and throw one of three Exception::Class 
+occurs, Getopt::Lucid will die and throw one of three Exception::Class
 subclasses:
 
 * {Getopt::Lucid::Exception::Usage} -- thrown when Getopt::Lucid methods are
 called incorrectly
-* {Getopt::Lucid::Exception::Spec} -- thrown when the specification array 
+* {Getopt::Lucid::Exception::Spec} -- thrown when the specification array
 contains incorrect or invalid data
 * {Getopt::Lucid::Exception::ARGV} -- thrown when the command-line is
-processed and fails to pass specified validation, requirements, or is 
+processed and fails to pass specified validation, requirements, or is
 otherwise determined to be invalid
 
 These exception may be caught using an {eval} block and allow the calling
@@ -1306,7 +1306,7 @@ key in the hash of options provided by {options}.
 
  %options = $opt->options();
 
-Returns a deep copy of the options hash.  Before {getopt} is called, its 
+Returns a deep copy of the options hash.  Before {getopt} is called, its
 behavior is undefined.  After {getopt} is called, this will return the
 result of modifying the defaults with the results of command line processing.
 
@@ -1341,8 +1341,8 @@ undoes the effect of a {merge_defaults} or {add_defaults} call.
 
 = BUGS
 
-Please report any bugs or feature using the CPAN Request Tracker.  
-Bugs can be submitted through the web interface at 
+Please report any bugs or feature using the CPAN Request Tracker.
+Bugs can be submitted through the web interface at
 [http://rt.cpan.org/Dist/Display.html?Queue=Getopt-Lucid]
 
 When submitting a bug or request, please include a test-file or a patch to an
@@ -1358,7 +1358,7 @@ Copyright (c) 2005 - 2009 by David A. Golden
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
-You may obtain a copy of the License at 
+You may obtain a copy of the License at
 [http://www.apache.org/licenses/LICENSE-2.0]
 
 Files produced as output though the use of this software shall not be
