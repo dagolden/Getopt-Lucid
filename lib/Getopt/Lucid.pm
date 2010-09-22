@@ -576,7 +576,7 @@ sub _set_defaults {
             local $_ = $type;
             /switch/    ?   (defined $d ? $d: 0)   :
             /counter/   ?   (defined $d ? $d: 0)   :
-            /parameter/ ?   (defined $d ? $d: undef)  :
+            /parameter/ ?   $d :
             /list/      ?   (defined $d ? dclone($d): [])  :
             /keypair/   ?   (defined $d ? dclone($d): {})  :
                             undef;
