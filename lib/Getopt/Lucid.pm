@@ -62,7 +62,7 @@ our $VERSION = $Getopt::Lucid::VERSION;
 # alternate way to specify validation
 sub valid {
     my $self = shift;
-    throw_spec("valid() is not supported for '$self->{type}' options")
+    Getopt::Lucid::throw_spec("valid() is not supported for '$self->{type}' options")
       unless grep { $self->{type} eq $_ } qw/param list keypair/;
     $self->{valid} = $self->{type} eq 'keypair' ? [ @_ ] : shift;
     return $self;
