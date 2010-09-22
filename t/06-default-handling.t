@@ -29,12 +29,12 @@ my $spec = [
     Switch("-x")->default(1),
 ];
 
-my $case = { 
+my $case = {
     argv    => [ qw( -tvv -I /etc -I /lib -d version=1.0a ) ],
-    result  => { 
-        t => 1, 
-        v => 3, 
-        "file-names" => "hosts", 
+    result  => {
+        t => 1,
+        v => 3,
+        "file-names" => "hosts",
         I => [qw(/home /etc /lib)],
         d => { arch => "i386", version => "1.0a" },
         x => 1,
@@ -42,10 +42,10 @@ my $case = {
     desc    => "getopt"
 };
 
-my $config1 = { 
-    t => 1, 
-    v => 4, 
-    "file-names" => "group", 
+my $config1 = {
+    t => 1,
+    v => 4,
+    "file-names" => "group",
     I => [qw(/var /tmp)],
     d => { os => "win32" },
     z => 1  # extra not in the spec
@@ -60,54 +60,54 @@ use vars qw(
 );
 
 $merge_default = {
-    t => 1, 
-    v => 4, 
-    "file-names" => "group", 
+    t => 1,
+    v => 4,
+    "file-names" => "group",
     I => [qw(/var /tmp)],
     d => { os => "win32" },
     x => 1,
 };
 
 $append_default = {
-    t => 1, 
-    v => 5, 
-    "file-names" => "group", 
+    t => 1,
+    v => 5,
+    "file-names" => "group",
     I => [qw(/home /var /tmp)],
     d => { arch => "i386", os => "win32" },
     x => 1,
 };
 
 $replace_default = {
-    t => 1, 
-    v => 4, 
-    "file-names" => "group", 
+    t => 1,
+    v => 4,
+    "file-names" => "group",
     I => [qw(/var /tmp)],
     d => { os => "win32" },
     x => 0,
 };
 
-$merge_result = { 
-    t => 1, 
-    v => 6, 
-    "file-names" => "group", 
+$merge_result = {
+    t => 1,
+    v => 6,
+    "file-names" => "group",
     I => [qw(/var /tmp /etc /lib)],
     d => { os => "win32", version => "1.0a" },
     x => 1,
 };
 
-$append_result = { 
-    t => 1, 
-    v => 7, 
-    "file-names" => "group", 
+$append_result = {
+    t => 1,
+    v => 7,
+    "file-names" => "group",
     I => [qw(/home /var /tmp /etc /lib)],
     d => { arch => "i386", os => "win32", version => "1.0a" },
     x => 1,
 };
 
-$replace_result = { 
-    t => 1, 
-    v => 6, 
-    "file-names" => "group", 
+$replace_result = {
+    t => 1,
+    v => 6,
+    "file-names" => "group",
     I => [qw(/var /tmp /etc /lib)],
     d => { os => "win32", version => "1.0a" },
     x => 0,
@@ -120,7 +120,7 @@ my ($gl, @cmd_line, $err);
 try eval { $gl = Getopt::Lucid->new($spec, \@cmd_line) };
 catch $err;
 is( $err, undef, "spec should validate" );
-SKIP: {    
+SKIP: {
     if ($err) {
         skip "because spec did not validate", $num_tests - 1;
     }
@@ -138,13 +138,13 @@ SKIP: {
         for my $opt (@$spec) {
             local $_ = $opt->{name};
             (my $strip = $_) =~ s/^-+//g;
-            $basic_default{$strip} = $opt->{default} 
+            $basic_default{$strip} = $opt->{default}
                 if exists $opt->{default};
         }
-        is_deeply( {$gl->defaults}, \%basic_default, 
+        is_deeply( {$gl->defaults}, \%basic_default,
             "basic default options returned correctly") or 
             diag why( got => {$gl->options}, expected => \%basic_default);
-        is_deeply( {$gl->options}, $expect, 
+        is_deeply( {$gl->options}, $expect,
             "options with default from spec processed correctly") or 
             diag why( got => {$gl->options}, expected => $expect);
 
@@ -159,34 +159,34 @@ SKIP: {
                 my $msg = $c
                     ? "hash version"
                     : "hashref version";
-                is_deeply( {$gl->defaults}, $$default, 
+                is_deeply( {$gl->defaults}, $$default,
                     "$call updated defaults correctly ($msg)") or 
                     diag why( got => {$gl->defaults}, expected => $$default);
-                is_deeply( {$gl->options}, $$result, 
+                is_deeply( {$gl->options}, $$result,
                     "$call refreshed options correctly ($msg)") or 
                     diag why( got => {$gl->options}, expected => $$result);
                 $gl->reset_defaults();
-                is_deeply( {$gl->options}, $expect, 
+                is_deeply( {$gl->options}, $expect,
                     "options reset to spec correctly ($msg)") or 
                     diag why( got => {$gl->options}, expected => $expect);
             }
         }
-        
+
         # Test bad args
         for my $fcn ( qw( merge append replace ) ) {
             no strict 'refs';
             my $call = "${fcn}_defaults";
             eval { $gl->$call ( "bad_value" ) };
             catch $err;
-            is( $err, _invalid_splat_defaults("$call()"), 
+            is( $err, _invalid_splat_defaults("$call()"),
                 "$call() with invalid arguments throws exception");
             eval { $gl->$call ( I => {key => "value"} ) };
             catch $err;
-            is( $err, _invalid_list("I","$call()"), 
+            is( $err, _invalid_list("I","$call()"),
                 "$call() with invalid list option throws exception");
             eval { $gl->$call ( d => [key => "value"] ) };
             catch $err;
-            is( $err, _invalid_keypair("d","$call()"), 
+            is( $err, _invalid_keypair("d","$call()"),
                 "$call() with invalid keypair option throws exception");
         }
     }
