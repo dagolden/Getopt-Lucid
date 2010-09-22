@@ -22,24 +22,24 @@ sub why {
 my ($num_tests, @bad_specs, @good_specs);
 
 BEGIN {
-    
-    push @good_specs, { 
+
+    push @good_specs, {
         label => "single short switch",
         spec  => [
             Switch("-v"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( -v ) ],
                 result  => { "v" => 1 },
                 desc    => "switch present"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( ) ],
                 result  => { "v" => 0 },
                 desc    => "switch missing"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -t ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _invalid_argument("-t"),
@@ -48,29 +48,29 @@ BEGIN {
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "multiple short switches",
         spec  => [
             Switch("-v"),
             Switch("-t"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( -v -t ) ],
                 result  => { "v" => 1, "t" => 1 },
                 desc    => "both switches present"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -v ) ],
                 result  => { "v" => 1, "t" => 0 },
                 desc    => "one switch present"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( ) ],
                 result  => { "v" => 0, "t" => 0 },
                 desc    => "both switches missing"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -f ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _invalid_argument("-f"),
@@ -79,7 +79,7 @@ BEGIN {
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "bundled short switches",
         spec  => [
             Switch("-v"),
@@ -87,17 +87,17 @@ BEGIN {
             Switch("-r"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( -vrt ) ],
                 result  => { "v" => 1, "r" => 1, "t" => 1 },
                 desc    => "three switches present"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -vt ) ],
                 result  => { "v" => 1, "r" => 0, "t" => 1 },
                 desc    => "two switches present"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -vfrt ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _invalid_argument("-f"),
@@ -106,7 +106,7 @@ BEGIN {
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "short and long switches",
         spec  => [
             Switch("--verbose"),
@@ -114,22 +114,22 @@ BEGIN {
             Switch("-r"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( --verbose -r --test ) ],
                 result  => { "verbose" => 1, "test" => 1, "r" => 1 },
                 desc    => "three switches present (2 long and 1 short)"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -r --test ) ],
                 result  => { "verbose" => 0, "test" => 1, "r" => 1 },
                 desc    => "two switches present (long and short)"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --test ) ],
                 result  => { "verbose" => 0, "test" => 1, "r" => 0 },
                 desc    => "only long switch present"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --test -v ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _invalid_argument("-v"),
@@ -138,7 +138,7 @@ BEGIN {
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "option name aliasing",
         spec  => [
             Switch("--verbose|-v"),
@@ -146,17 +146,17 @@ BEGIN {
             Switch("-r|-s"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( -v -s --debug ) ],
                 result  => { "verbose" => 1, "test" => 1, "r" => 1 },
                 desc    => "three switch aliases used"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -r -d ) ],
                 result  => { "verbose" => 0, "test" => 1, "r" => 1 },
                 desc    => "two switches present (alias and regular)"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --verbose -v ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _switch_twice("--verbose"),
@@ -165,7 +165,7 @@ BEGIN {
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "'--' terminates options",
         spec  => [
             Switch("--verbose"),
@@ -173,83 +173,83 @@ BEGIN {
             Switch("-r"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( --verbose -r -- --test ) ],
                 result  => { "verbose" => 1, "test" => 0, "r" => 1 },
                 after   => [ qw( --test ) ],
                 desc    => "stop after two"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -- -r --test ) ],
                 result  => { "verbose" => 0, "test" => 0, "r" => 0 },
                 after   => [ qw(-r --test ) ],
                 desc    => "stop right away"
-            },            
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "two counter",
         spec  => [
             Counter("--verbose|-v"),
             Counter("--count"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( --count --verbose -vv --count ) ],
                 result  => { "verbose" => 3, "count" => 2 },
                 desc    => "one counter used twice, other used thrice"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --verbose -v ) ],
                 result  => { "verbose" => 2, "count" => 0 },
                 desc    => "one counter used twice"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -- ) ],
                 result  => { "verbose" => 0, "count" => 0 },
                 desc    => "no counters used"
-            },            
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "parameter w/o '='",
         spec  => [
             Counter("--verbose|-v"),
             Param("--input|-i"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( -- ) ],
                 result  => { "verbose" => 0, "input" => undef },
                 desc    => "no options"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --input 42 -vv ) ],
                 result  => { "verbose" => 2, "input" => 42 },
                 desc    => "counters and long-style parameter"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -vi 42 ) ],
                 result  => { "verbose" => 1, "input" => 42 },
                 desc    => "bundled counter and short-style parameter"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -i 42 --input 3 ) ],
                 result  => { "verbose" => 0, "input" => 3 },
-                desc    => "repeated param value" 
-            },            
-            { 
+                desc    => "repeated param value"
+            },
+            {
                 argv    => [ qw( -i -v ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _param_ambiguous("--input","-v"),
-                desc    => "ambiguous param value" 
-            },            
+                desc    => "ambiguous param value"
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "parameter w '='",
         spec  => [
             Switch("--test|-t"),
@@ -257,102 +257,102 @@ BEGIN {
             Param("--input|-i"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( -- ) ],
                 result  => { "verbose" => 0, "input" => undef, "test" => 0 },
                 desc    => "no options"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --input=42 -vv ) ],
                 result  => { "verbose" => 2, "input" => 42, "test" => 0 },
                 desc    => "counters and long-style parameter"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -vi=42 ) ],
                 result  => { "verbose" => 1, "input" => 42, "test" => 0 },
                 desc    => "bundled counter and short-style parameter"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -i=-v ) ],
                 result  => { "verbose" => 0, "input" => "-v", "test" => 0 },
-                desc    => "ambiguous param value ok w '='" 
-            },            
-            { 
+                desc    => "ambiguous param value ok w '='"
+            },
+            {
                 argv    => [ qw( --test=42 ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _switch_value("--test","42"),
-                desc    => "switch with equals" 
-            },            
-            { 
+                desc    => "switch with equals"
+            },
+            {
                 argv    => [ qw( --verbose=42 ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _counter_value("--verbose","42"),
-                desc    => "counter with equals" 
-            },            
+                desc    => "counter with equals"
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "lists (w or w/o '=')",
         spec  => [
             Counter("--verbose|-v"),
             List("--input|-i"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( -- ) ],
                 result  => { "verbose" => 0, "input" => [] },
                 desc    => "no options"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --input 42 -vv ) ],
                 result  => { "verbose" => 2, "input" => [42] },
                 desc    => "counters and one list arg"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --input 42 -vvi=twelve ) ],
                 result  => { "verbose" => 2, "input" => [42,"twelve"] },
                 desc    => "counters and two list args"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -i -v ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _param_ambiguous("--input","-v"),
-                desc    => "ambiguous param value" 
-            },            
-            { 
+                desc    => "ambiguous param value"
+            },
+            {
                 argv    => [ qw( -i=-v --input=-i) ],
                 result  => { "verbose" => 0, "input" => ["-v", "-i"] },
-                desc    => "ambiguous param value ok w '='" 
-            },            
+                desc    => "ambiguous param value ok w '='"
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "pass through non-switch args",
         spec  => [
             Switch("-v"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( word1 -v word2 ) ],
                 result  => { "v" => 1 },
                 after   => [ qw( word1 word2 ) ],
                 desc    => "switch in middle"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( word1 -v -- -t ) ],
                 result  => { "v" => 1 },
                 after   => [ qw( word1 -t ) ],
                 desc    => "switch before '--' and arg"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -v - ) ],
                 result  => { "v" => 1 },
                 after   => [ qw( - ) ],
                 desc    => "single dash"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -v -t ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _invalid_argument("-t"),
@@ -361,104 +361,104 @@ BEGIN {
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "keypairs (w or w/o =)",
         spec  => [
             Counter("--verbose|-v"),
             Keypair("--input|-i"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( -- ) ],
                 result  => { "verbose" => 0, "input" => {} },
                 desc    => "no options"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --input n=42 -vv ) ],
                 result  => { "verbose" => 2, "input" => { n => 42} },
                 desc    => "counters and one keypair arg"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --input n=42 -vvi=p=twelve ) ],
-                result  => {    
-                    "verbose" => 2, 
-                    "input" => { n => 42, p => "twelve"} 
+                result  => {
+                    "verbose" => 2,
+                    "input" => { n => 42, p => "twelve"}
                 },
                 desc    => "counters and two keypair args"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -i -v ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _keypair("--input"),
-                desc    => "keypair missing value (no '=')" 
-            },            
-            { 
+                desc    => "keypair missing value (no '=')"
+            },
+            {
                 argv    => [ qw( -i=-v --input=-i) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _keypair("--input"),
-                desc    => "keypair missing value (w '=')" 
-            },            
-            { 
+                desc    => "keypair missing value (w '=')"
+            },
+            {
                 argv    => [ qw( -i==-v ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _keypair("--input"),
-                desc    => "keypair missing key (w '=')" 
-            },            
+                desc    => "keypair missing key (w '=')"
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "bareword options",
         spec  => [
             Counter("verbose|v"),
             Param("input|i"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( -- ) ],
                 result  => { "verbose" => 0, "input" => undef },
                 desc    => "no options"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( input 42 v v ) ],
                 result  => { "verbose" => 2, "input" => 42 },
                 desc    => "counters and longstyle parameter"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( i 42 input 3 ) ],
                 result  => { "verbose" => 0, "input" => 3 },
-                desc    => "repeated param value" 
-            },            
+                desc    => "repeated param value"
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "required options",
         spec  => [
             Counter("--verbose|-v"),
             Param("--input|-i")->required,
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( -v ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _required("--input"),
-                desc    => "missing required option" 
-            },            
-            { 
+                desc    => "missing required option"
+            },
+            {
                 argv    => [ qw( --input 42 -vv ) ],
                 result  => { "verbose" => 2, "input" => 42 },
                 desc    => "required option present"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --input info -v ) ],
                 result  => { "verbose" => 1, "input" => 'info' },
                 desc    => "required option param similar to option name"
-            },            
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "default values",
         spec  => [
             Switch("--quick")->default(1),
@@ -468,79 +468,79 @@ BEGIN {
             Keypair("--flag")->default(answer => 42),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw(  ) ],
-                result  => { 
+                result  => {
                     "quick" => 1,
-                    "verbose" => 1, 
+                    "verbose" => 1,
                     "input" => 42,
                     "lib" => [qw( one two )],
                     "flag" => { answer => 42 },
                 },
-                desc    => "no options" 
-            },            
-            { 
+                desc    => "no options"
+            },
+            {
                 argv    => [ qw( -v ) ],
-                result  => { 
+                result  => {
                     "quick" => 1,
-                    "verbose" => 2, 
+                    "verbose" => 2,
                     "input" => 42,
                     "lib" => [qw( one two )],
                     "flag" => { answer => 42 },
                 },
-                desc    => "one option given, other default" 
-            },            
-            { 
+                desc    => "one option given, other default"
+            },
+            {
                 argv    => [ qw( --input 23 -vv ) ],
-                result  => { 
+                result  => {
                     "quick" => 1,
-                    "verbose" => 3, 
+                    "verbose" => 3,
                     "input" => 23,
                     "lib" => [qw( one two )],
                     "flag" => { answer => 42 },
                 },
                 desc    => "two options given"
-            },            
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "case insensitive",
         spec  => [
             Counter("--verbose|-v")->default(1)->anycase,
             Param("--input|-i|-r")->default(42),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw(  ) ],
                 result  => { "verbose" => 1, "input" => 42, },
-                desc    => "no options" 
-            },            
-            { 
+                desc    => "no options"
+            },
+            {
                 argv    => [ qw( -v ) ],
                 result  => { "verbose" => 2, "input" => 42, },
-                desc    => "two lower case options given" 
-            },            
-            { 
+                desc    => "two lower case options given"
+            },
+            {
                 argv    => [ qw( --verBose -vV -r 23 ) ],
                 result  => { "verbose" => 4, "input" => 23, },
                 desc    => "mixed cases for case insensitive (alt)"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --verBose -vV --input 23 ) ],
                 result  => { "verbose" => 4, "input" => 23, },
                 desc    => "mixed cases for case insensitive"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --INPUT ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _invalid_argument("--INPUT"),
-                desc    => "bad case for case sensitive option" 
-            },            
+                desc    => "bad case for case sensitive option"
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "validate w/ regex",
         spec  => [
             Counter("--verbose|-v")->default(1),
@@ -549,169 +549,169 @@ BEGIN {
             Keypair("--def", qr/(os)*/, qr/^(win32|linux|mac)/),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw(  ) ],
-                result  => { 
-                    "verbose" => 1, 
+                result  => {
+                    "verbose" => 1,
                     "input" => 42,
                     "lib" => [],
                     "def" => {},
                 },
-                desc    => "no options" 
-            },            
-            { 
+                desc    => "no options"
+            },
+            {
                 argv    => [ qw( --input 23 ) ],
-                result  => { 
-                    "verbose" => 1, 
+                result  => {
+                    "verbose" => 1,
                     "input" => 23,
                     "lib" => [],
                     "def" => {},
                 },
                 desc    => "param input validates"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --lib foo --lib bar ) ],
-                result  => { 
-                    "verbose" => 1, 
+                result  => {
+                    "verbose" => 1,
                     "input" => 42,
                     "lib" => [qw(foo bar)],
                     "def" => {},
                 },
                 desc    => "list input validates"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --def os=linux ) ],
-                result  => { 
-                    "verbose" => 1, 
+                result  => {
+                    "verbose" => 1,
                     "input" => 42,
                     "lib" => [],
                     "def" => { os => "linux" },
                 },
                 desc    => "keypair input validates"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --input twenty-three ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _param_invalid("--input","twenty-three"),
-                desc    => "param input not validating" 
-            },            
-            { 
+                desc    => "param input not validating"
+            },
+            {
                 argv    => [ qw( --lib foo --lib % ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _list_invalid("--lib","%"),
-                desc    => "list input not validating" 
-            },            
-            { 
+                desc    => "list input not validating"
+            },
+            {
                 argv    => [ qw( --def os=amiga ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _keypair_invalid("--def","os","amiga"),
-                desc    => "keypair value not validating" 
-            },            
-            { 
+                desc    => "keypair value not validating"
+            },
+            {
                 argv    => [ qw( --def arch=i386 ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _keypair_invalid("--def","arch","i386"),
-                desc    => "keypair key not validating" 
-            },            
+                desc    => "keypair key not validating"
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "validate but allow missing options",
         spec  => [
             Param( "mode|m", qr/test|live/ )
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw() ],
-                result  => { 
+                result  => {
                     "mode" => undef,
                 },
                 desc    => "no param validates"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --mode test ) ],
-                result  => { 
+                result  => {
                     "mode" => 'test',
                 },
                 desc    => "param input validates"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --mode foo ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _param_invalid("mode","foo"),
-                desc    => "param mode not validating" 
-            },            
+                desc    => "param mode not validating"
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "validate w/ string alternation regex",
         spec  => [
             Param( "mode|m", qr/test|live/ )->required
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( --mode test ) ],
-                result  => { 
+                result  => {
                     "mode" => 'test',
                 },
                 desc    => "param input validates"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --mode foo ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _param_invalid("mode","foo"),
-                desc    => "param mode not validating" 
-            },            
+                desc    => "param mode not validating"
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "validate only keypair key",
         spec  => [
             Keypair("--def", qr/(os)*/),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( --def os=linux ) ],
-                result  => { 
+                result  => {
                     "def" => { os => "linux" },
                 },
                 desc    => "keypair input validates"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --def arch=i386 ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _keypair_invalid("--def","arch", "i386"),
-                desc    => "key not validating" 
-            },            
+                desc    => "key not validating"
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "validate only keypair value",
         spec  => [
             Keypair("--def", undef, qr/(linux|win32)*/),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( --def os=linux ) ],
-                result  => { 
+                result  => {
                     "def" => { os => "linux" },
                 },
                 desc    => "keypair input validates"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --def os=amiga ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _keypair_invalid("--def","os","amiga"),
-                desc    => "value not validating" 
-            },            
+                desc    => "value not validating"
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "validate w/ code refs",
         spec  => [
             Counter("--verbose|-v")->default(1),
@@ -719,26 +719,26 @@ BEGIN {
             Param("--answer", sub { $_ < 43  })->default(23),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw(  ) ],
                 result  => { "verbose" => 1, "input" => 42, "answer" => 23 },
-                desc    => "no options" 
-            },            
-            { 
+                desc    => "no options"
+            },
+            {
                 argv    => [ qw( --input 23 ) ],
                 result  => { "verbose" => 1, "input" => 23, "answer" => 23 },
                 desc    => "input validates"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --answer 60 ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _param_invalid("--answer","60"),
-                desc    => "input failing to validate" 
-            },            
+                desc    => "input failing to validate"
+            },
         ]
     };
-    
-    push @good_specs, { 
+
+    push @good_specs, {
         label => "single dependency",
         spec  => [
             Param("--question"),
@@ -746,31 +746,31 @@ BEGIN {
             Param("--answer|-a"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( --question 5 ) ],
                 result  => { "question" => 5, "guess" => 0, "answer" => undef },
-                desc    => "single, unrelated option" 
-            },            
-            { 
+                desc    => "single, unrelated option"
+            },
+            {
                 argv    => [ qw( --guess ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _prereq_missing("--guess", "--answer"),
-                desc    => "missing prereq" 
-            },            
-            { 
+                desc    => "missing prereq"
+            },
+            {
                 argv    => [ qw( --guess --answer 3 ) ],
                 result  => { "question" => undef, "guess" => 1, "answer" => "3" },
                 desc    => "prereq present"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --guess -a 3 ) ],
                 result  => { "question" => undef, "guess" => 1, "answer" => "3" },
                 desc    => "prereq present as alias"
-            },            
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "multiple dependencies",
         spec  => [
             Switch("--guess")->needs(qw( --answer --wager )),
@@ -778,32 +778,32 @@ BEGIN {
             Param("--answer|-a"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( ) ],
                 result  => { "guess" => 0, "answer" => undef, wager => undef },
-                desc    => "no options" 
-            },            
-            { 
+                desc    => "no options"
+            },
+            {
                 argv    => [ qw( --guess ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _prereq_missing("--guess", "--answer"),
-                desc    => "missing both prereqs" 
-            },            
-            { 
+                desc    => "missing both prereqs"
+            },
+            {
                 argv    => [ qw( --guess --answer 5 ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _prereq_missing("--guess", "--wager"),
-                desc    => "missing one prereq" 
-            },            
-            { 
+                desc    => "missing one prereq"
+            },
+            {
                 argv    => [ qw( --guess --answer 3 --wager 10 ) ],
                 result  => { "guess" => 1, "answer" => 3, "wager" => 10 },
                 desc    => "prereq present"
-            },            
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "single dependency with alias",
         spec  => [
             Param("--question"),
@@ -811,48 +811,48 @@ BEGIN {
             Param("--answer|-a"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( --guess ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _prereq_missing("--guess", "--answer"),
-                desc    => "missing prereq" 
-            },            
-            { 
+                desc    => "missing prereq"
+            },
+            {
                 argv    => [ qw( --guess --answer 3 ) ],
                 result  => { "question" => undef, "guess" => 1, "answer" => "3" },
                 desc    => "prereq present"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --guess -a 3 ) ],
                 result  => { "question" => undef, "guess" => 1, "answer" => "3" },
                 desc    => "prereq present as alias"
-            },            
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "dash and underscore options",
         spec  => [
             Switch("--dash-style"),
             Switch("--underscore_style"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( --dash-style ) ],
                 result  => { "dash-style" => "1", "underscore_style" => "0" },
                 desc    => "dash-style name works",
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --underscore_style ) ],
                 result  => { "dash-style" => "0", "underscore_style" => "1" },
                 desc    => "underscore_style name works",
-            },            
+            },
         ]
     };
 
     # Bad specification testing
 
-    push @bad_specs, { 
+    push @bad_specs, {
         spec  => [
             Switch("-v|--verbose"),
             Switch("--verbose"),
@@ -862,7 +862,7 @@ BEGIN {
         label => "duplicate name and alias in spec"
     };
 
-    push @bad_specs, { 
+    push @bad_specs, {
         spec  => [
             Switch("--quick|-q"),
             Switch("--quiet|-q"),
@@ -872,7 +872,7 @@ BEGIN {
         label => "duplicate aliases in spec"
     };
 
-    push @bad_specs, { 
+    push @bad_specs, {
         spec  => [
             Switch("--quick"),
             Switch("quick"),
@@ -882,7 +882,7 @@ BEGIN {
         label => "duplicate name bareword and long"
     };
 
-    push @bad_specs, { 
+    push @bad_specs, {
         spec  => [
             Switch("-vv"),
         ],
@@ -891,7 +891,7 @@ BEGIN {
         label => "bad option name in spec - short w/ > 1 letter"
     };
 
-    push @bad_specs, { 
+    push @bad_specs, {
         spec  => [
             Switch("--%%"),
         ],
@@ -900,7 +900,7 @@ BEGIN {
         label => "bad option name in spec - symbols"
     };
 
-    push @bad_specs, { 
+    push @bad_specs, {
         spec  => [
             { name => "-v", badtype => "badtype" },
         ],
@@ -909,7 +909,7 @@ BEGIN {
         label => "bad spec key"
     };
 
-    push @bad_specs, { 
+    push @bad_specs, {
         spec  => [
             { name => "-v", type => "badtype" }
         ],
@@ -918,7 +918,7 @@ BEGIN {
         label => "bad spec type"
     };
 
-    push @bad_specs, { 
+    push @bad_specs, {
         spec  => [
             { name => "-v", type => "alist" },
         ],
@@ -927,7 +927,7 @@ BEGIN {
         label => "bad spec type w valid substring"
     };
 
-    push @bad_specs, { 
+    push @bad_specs, {
         spec  => [
             Keypair("-v")->default([]),
         ],
@@ -945,7 +945,7 @@ BEGIN {
         label => "provided default not validating vs regex"
     };
 
-    push @bad_specs, { 
+    push @bad_specs, {
         spec  => [
             Switch("--guess")->needs(qw( --answer --wager )),
             Switch("--answer|-a"),
@@ -955,7 +955,7 @@ BEGIN {
         label => "unknown prereq",
     };
 
-} #BEGIN 
+} #BEGIN
 
 $num_tests = 2 * @bad_specs;
 for my $t (@good_specs) {
@@ -974,7 +974,7 @@ while ( $trial = shift @good_specs ) {
     try eval { Getopt::Lucid->new($trial->{spec}) };
     catch my $err;
     is( $err, undef, "$trial->{label}: spec should validate" );
-    SKIP: {    
+    SKIP: {
         if ($err) {
             my $num_tests = 2 * @{$trial->{cases}};
             skip "because $trial->{label} spec did not validate", $num_tests;
@@ -986,17 +986,17 @@ while ( $trial = shift @good_specs ) {
             try eval { %opts = $gl->getopt->options };
             catch my $err;
             if (defined $case->{exception}) { # expected
-                ok( $err && $err->isa( $case->{exception} ), 
+                ok( $err && $err->isa( $case->{exception} ),
                     "$trial->{label}: $case->{desc} throws exception" )
                     or diag why( got => ref($err), expected => $case->{exception});
-                is( $err, $case->{error_msg}, 
+                is( $err, $case->{error_msg},
                     "$trial->{label}: $case->{desc} error msg ok");
             } elsif ($err) { # unexpected
                 fail( "$trial->{label}: $case->{desc}")
                     or diag "Threw exception: '$err'";
                 pass("$trial->{label}: skipping \@ARGV check");
             } else { # no exception
-                is_deeply( \%opts, $case->{result}, 
+                is_deeply( \%opts, $case->{result},
                     "$trial->{label}: $case->{desc}" ) or
                     diag why( got => \%opts, expected => $case->{result});
                 my $argv_after = $case->{after} || [];
@@ -1015,7 +1015,7 @@ while ( $trial = shift @good_specs ) {
 while ( $trial = shift @bad_specs ) {
     try eval { Getopt::Lucid->new($trial->{spec}) };
     catch my $err;
-    ok( $err && $err->isa( $trial->{exception} ), 
+    ok( $err && $err->isa( $trial->{exception} ),
         "$trial->{label} throws exception" )
         or diag why( got => ref($err), expected => $trial->{exception});
     is( $err, $trial->{error_msg}, "$trial->{label} error msg ok");
