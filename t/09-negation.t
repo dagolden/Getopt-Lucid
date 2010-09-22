@@ -114,7 +114,7 @@ BEGIN {
             { 
                 argv    => [ qw() ],
                 result  => { 
-                    "mode" => '',
+                    "mode" => undef,
                 },
                 desc    => "no param validates"
             },            
