@@ -222,7 +222,7 @@ BEGIN {
         cases => [
             { 
                 argv    => [ qw( -- ) ],
-                result  => { "verbose" => 0, "input" => "" },
+                result  => { "verbose" => 0, "input" => undef },
                 desc    => "no options"
             },            
             { 
@@ -259,7 +259,7 @@ BEGIN {
         cases => [
             { 
                 argv    => [ qw( -- ) ],
-                result  => { "verbose" => 0, "input" => "", "test" => 0 },
+                result  => { "verbose" => 0, "input" => undef, "test" => 0 },
                 desc    => "no options"
             },            
             { 
@@ -416,7 +416,7 @@ BEGIN {
         cases => [
             { 
                 argv    => [ qw( -- ) ],
-                result  => { "verbose" => 0, "input" => "" },
+                result  => { "verbose" => 0, "input" => undef },
                 desc    => "no options"
             },            
             { 
@@ -625,7 +625,7 @@ BEGIN {
             { 
                 argv    => [ qw() ],
                 result  => { 
-                    "mode" => '',
+                    "mode" => undef,
                 },
                 desc    => "no param validates"
             },            
@@ -748,7 +748,7 @@ BEGIN {
         cases => [
             { 
                 argv    => [ qw( --question 5 ) ],
-                result  => { "question" => 5, "guess" => 0, "answer" => "" },
+                result  => { "question" => 5, "guess" => 0, "answer" => undef },
                 desc    => "single, unrelated option" 
             },            
             { 
@@ -759,12 +759,12 @@ BEGIN {
             },            
             { 
                 argv    => [ qw( --guess --answer 3 ) ],
-                result  => { "question" => "", "guess" => 1, "answer" => "3" },
+                result  => { "question" => undef, "guess" => 1, "answer" => "3" },
                 desc    => "prereq present"
             },            
             { 
                 argv    => [ qw( --guess -a 3 ) ],
-                result  => { "question" => "", "guess" => 1, "answer" => "3" },
+                result  => { "question" => undef, "guess" => 1, "answer" => "3" },
                 desc    => "prereq present as alias"
             },            
         ]
@@ -780,7 +780,7 @@ BEGIN {
         cases => [
             { 
                 argv    => [ qw( ) ],
-                result  => { "guess" => 0, "answer" => "", wager => "" },
+                result  => { "guess" => 0, "answer" => undef, wager => undef },
                 desc    => "no options" 
             },            
             { 
@@ -819,12 +819,12 @@ BEGIN {
             },            
             { 
                 argv    => [ qw( --guess --answer 3 ) ],
-                result  => { "question" => "", "guess" => 1, "answer" => "3" },
+                result  => { "question" => undef, "guess" => 1, "answer" => "3" },
                 desc    => "prereq present"
             },            
             { 
                 argv    => [ qw( --guess -a 3 ) ],
-                result  => { "question" => "", "guess" => 1, "answer" => "3" },
+                result  => { "question" => undef, "guess" => 1, "answer" => "3" },
                 desc    => "prereq present as alias"
             },            
         ]
