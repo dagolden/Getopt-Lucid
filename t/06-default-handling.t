@@ -27,6 +27,10 @@ my $spec = [
     List("-I")->default("/home"),
     Keypair("-d")->default( arch => "i386" ),
     Switch("-x")->default(1),
+    Param( '--undef' )->default( undef ),
+    Param( '--empty' )->default( '' ),
+    Param( '--no_param' )->default(),
+    Param( '--without_default' ),
 ];
 
 my $case = {
@@ -38,6 +42,10 @@ my $case = {
         I => [qw(/home /etc /lib)],
         d => { arch => "i386", version => "1.0a" },
         x => 1,
+        undef => undef,
+        empty => '',
+        no_param => undef,
+        without_default => undef,
     },
     desc    => "getopt"
 };
@@ -48,7 +56,11 @@ my $config1 = {
     "file-names" => "group",
     I => [qw(/var /tmp)],
     d => { os => "win32" },
-    z => 1  # extra not in the spec
+    z => 1,  # extra not in the spec
+    undef => undef,
+    empty => '',
+    no_param => undef,
+    without_default => undef,
 };
 
 # package variables for easier looping by name later
@@ -66,6 +78,10 @@ $merge_default = {
     I => [qw(/var /tmp)],
     d => { os => "win32" },
     x => 1,
+    undef => undef,
+    empty => '',
+    no_param => undef,
+    without_default => undef,
 };
 
 $append_default = {
@@ -75,6 +91,10 @@ $append_default = {
     I => [qw(/home /var /tmp)],
     d => { arch => "i386", os => "win32" },
     x => 1,
+    undef => undef,
+    empty => '',
+    no_param => undef,
+    without_default => undef,
 };
 
 $replace_default = {
@@ -84,6 +104,10 @@ $replace_default = {
     I => [qw(/var /tmp)],
     d => { os => "win32" },
     x => 0,
+    undef => undef,
+    empty => '',
+    no_param => undef,
+    without_default => undef,
 };
 
 $merge_result = {
@@ -93,6 +117,10 @@ $merge_result = {
     I => [qw(/var /tmp /etc /lib)],
     d => { os => "win32", version => "1.0a" },
     x => 1,
+    undef => undef,
+    empty => '',
+    no_param => undef,
+    without_default => undef,
 };
 
 $append_result = {
@@ -102,6 +130,10 @@ $append_result = {
     I => [qw(/home /var /tmp /etc /lib)],
     d => { arch => "i386", os => "win32", version => "1.0a" },
     x => 1,
+    undef => undef,
+    empty => '',
+    no_param => undef,
+    without_default => undef,
 };
 
 $replace_result = {
@@ -111,6 +143,10 @@ $replace_result = {
     I => [qw(/var /tmp /etc /lib)],
     d => { os => "win32", version => "1.0a" },
     x => 0,
+    undef => undef,
+    empty => '',
+    no_param => undef,
+    without_default => undef,
 };
 
 my $num_tests = 30 ;
@@ -138,8 +174,9 @@ SKIP: {
         for my $opt (@$spec) {
             local $_ = $opt->{name};
             (my $strip = $_) =~ s/^-+//g;
-            $basic_default{$strip} = $opt->{default}
-                if exists $opt->{default};
+            $basic_default{$strip} = (exists $opt->{default})
+                ? $opt->{default}
+                : undef;
         }
         is_deeply( {$gl->defaults}, \%basic_default,
             "basic default options returned correctly") or 

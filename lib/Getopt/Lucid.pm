@@ -302,7 +302,7 @@ sub replace_defaults {
                 last;
             };
             /parameter/ && do {
-                $self->{default}{$strip} = $replace{$strip} || "";
+                $self->{default}{$strip} = $replace{$strip};
                 last;
             };
             /list/ && do {
@@ -576,7 +576,7 @@ sub _set_defaults {
             local $_ = $type;
             /switch/    ?   (defined $d ? $d: 0)   :
             /counter/   ?   (defined $d ? $d: 0)   :
-            /parameter/ ?   (defined $d ? $d: "")  :
+            /parameter/ ?   (defined $d ? $d: undef)  :
             /list/      ?   (defined $d ? dclone($d): [])  :
             /keypair/   ?   (defined $d ? dclone($d): {})  :
                             undef;
