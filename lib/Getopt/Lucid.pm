@@ -759,6 +759,8 @@ sub AUTOLOAD {
 1; # modules must be true
 __END__
 
+=for Pod::Coverage getopts
+
 =begin wikidoc
 
 = SYNOPSIS
