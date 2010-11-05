@@ -2,6 +2,7 @@ Revision history for Perl module Getopt::Lucid
 
 {{$NEXT}}
 
+    - Added valid() modifier and deprecated old way of validating options
     - Added getopts() as an alias for getopt()
     - Allows setting param default to undef [Robert Bohne]
 
