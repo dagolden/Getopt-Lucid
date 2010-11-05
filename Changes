@@ -1,6 +1,6 @@
 Revision history for Perl module Getopt::Lucid
 
-0.19
+{{$NEXT}}
 
     - Added getopts() as an alias for getopt()
     - Allows setting param default to undef [Robert Bohne]
