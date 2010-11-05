@@ -1,7 +1,7 @@
 use strict;
 use Test::More;
 use Data::Dumper;
-use Exception::Class::TryCatch;
+use Exception::Class::TryCatch 1.10;
 use Getopt::Lucid ':all';
 use Getopt::Lucid::Exception;
 use t::ErrorMessages;

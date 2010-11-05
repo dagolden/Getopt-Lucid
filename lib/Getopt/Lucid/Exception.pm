@@ -6,7 +6,7 @@ use warnings;
 our $VERSION = '0.19';
 $VERSION = eval $VERSION;
 
-use Exception::Class (
+use Exception::Class 1.23 (
     "Getopt::Lucid::Exception" => {
         description => "Unidentified exception",
     },

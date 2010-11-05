@@ -12,7 +12,7 @@ our @ISA = qw( Exporter );
 use Carp;
 use Exporter ();
 use Getopt::Lucid::Exception;
-use Storable qw(dclone);
+use Storable 2.16 qw(dclone);
 
 # Definitions
 my $VALID_STARTCHAR = "a-zA-Z0-9";
