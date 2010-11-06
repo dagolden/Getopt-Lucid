@@ -10,8 +10,6 @@ use Getopt::Lucid ':all';
 use Getopt::Lucid::Exception;
 use t::ErrorMessages;
 
-$Getopt::Lucid::STRICT = 1;
-
 sub why {
     my %vars = @_;
     $Data::Dumper::Sortkeys = 1;
@@ -111,7 +109,7 @@ plan tests => $num_tests;
 my ($trial, @cmd_line);
 
 while ( $trial = shift @good_specs ) {
-    try eval { Getopt::Lucid->new($trial->{spec}, \@cmd_line) };
+    try eval { Getopt::Lucid->new($trial->{spec}, \@cmd_line, {strict => 1}) };
     catch my $err;
     is( $err, undef, "$trial->{label}: spec should validate" );
     SKIP: {    
@@ -120,7 +118,7 @@ while ( $trial = shift @good_specs ) {
             skip "because $trial->{label} spec did not validate", $num_tests;
         }
         for my $case ( @{$trial->{cases}} ) {
-            my $gl = Getopt::Lucid->new($trial->{spec}, \@cmd_line);
+            my $gl = Getopt::Lucid->new($trial->{spec}, \@cmd_line, {strict => 1});
             @cmd_line = @{$case->{argv}};
             my %opts;
             try eval { %opts = $gl->getopt->options };

@@ -36,7 +36,6 @@ TODO list for Perl module Getopt::Lucid
 # Bugfixes/technical/other
 #--------------------------------------------------------------------------#
 
-- make STRICT an object parameter, not a global
 - test how negation is handled under $STRICT
 - write cookbook
 - refactor ugly code (module and tests)

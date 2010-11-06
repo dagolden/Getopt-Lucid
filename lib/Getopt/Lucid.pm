@@ -26,10 +26,6 @@ my $NEGATIVE        = qr/(?:--)?no-/;
 my @valid_keys = qw( name type required default nocase valid needs canon );
 my @valid_types = qw( switch counter parameter list keypair);
 
-use vars qw( $STRICT );
-$STRICT = 0;
-
-
 sub Switch  {
     return bless { name => shift, type => 'switch' },
                  "Getopt::Lucid::Spec";
@@ -102,17 +98,23 @@ package Getopt::Lucid;
 # new()
 #--------------------------------------------------------------------------#
 
+my @params = qw/strict target/;
+
 sub new {
     my ($class, $spec, $target) = @_;
+    my $args = ref($_[-1]) eq 'HASH' ? pop(@_) : {};
+    $args->{target} = ref($target) eq 'ARRAY' ? $target : \@ARGV;
+    my $self = {};
+    $self->{$_} = $args->{$_} for @params;
+    $self->{raw_spec} = $spec;
+    bless ($self, ref($class) ? ref($class) : $class);
     throw_usage("Getopt::Lucid->new() requires an option specification array reference")
-        unless ref($spec) eq 'ARRAY';
-    my $self = bless ({}, ref($class) ? ref($class) : $class);
-    _parse_spec($self, $spec);
+        unless ref($self->{raw_spec}) eq 'ARRAY';
+    _parse_spec($self);
     _set_defaults($self);
     $self->{options} = {};
     $self->{parsed} = [];
     $self->{seen}{$_} = 0 for keys %{$self->{spec}};
-    $self->{target} = $target || \@ARGV;
     return $self;
 }
 
@@ -184,7 +186,7 @@ sub getopt {
     if ( $self eq 'Getopt::Lucid' ) {
         throw_usage("Getopt::Lucid->getopt() requires an option specification array reference")
             unless ref($spec) eq 'ARRAY';
-        $self = new($self,$spec,$target)
+        $self = new(@_)
     }
     my (@passthrough);
     while (@{$self->{target}}) {
@@ -389,7 +391,7 @@ sub _counter {
 sub _find_arg {
     my ($self, $arg) = @_;
 
-    $arg =~ s/^-*// unless $STRICT;
+    $arg =~ s/^-*// unless $self->{strict};
     return $self->{alias_hr}{$arg} if exists $self->{alias_hr}{$arg};
 
     for ( keys %{$self->{alias_nocase}} ) {
@@ -469,13 +471,14 @@ sub _parameter {
 #--------------------------------------------------------------------------#
 
 sub _parse_spec {
-    my ($self,$spec) = @_;
+    my ($self) = @_;
+    my $spec = $self->{raw_spec};
     for my $opt ( @$spec ) {
         my $name = $opt->{name};
         my @names = split( /\|/, $name );
         $opt->{canon} = $names[0];
         _validate_spec($self,\@names,$opt);
-        @names = map { s/^-*//; $_ } @names unless $STRICT; ## no critic
+        @names = map { s/^-*//; $_ } @names unless $self->{strict}; ## no critic
         for (@names) {
             $self->{alias_hr}{$_} = $names[0];
             $self->{alias_nocase}{$_} = $names[0]  if $opt->{nocase};
@@ -661,7 +664,7 @@ sub _validate_spec {
     my ($self,$names,$details) = @_;
     for my $name ( @$names ) {
         my $alt_name = $name;
-        $alt_name =~ s/^-*// unless $STRICT;
+        $alt_name =~ s/^-*// unless $self->{strict};
         throw_spec(
             "'$name' is not a valid option name/alias"
         ) unless $name =~ /^$VALID_NAME$/;
@@ -861,7 +864,7 @@ In practice, this means that the specification need not use dashes, but if
 used on the command line, they will be treated appropriately.
 
 Alternatively, Getopt::Lucid can operate in "strict" mode by setting
-{$Getopt::Lucid::STRICT} to a true value.  In strict mode, option names
+the C<strict> parameter to a true value.  In strict mode, option names
 and aliases may still be specified in any of the three styles, but they
 will only be parsed from the command line if they are used in exactly
 the same style.  E.g., given the name and alias "--help|-h", only "--help"
@@ -1228,15 +1231,21 @@ accessor code.  Avoid identical names with mixed dash and underscore styles.
 == new()
 
  $opt = Getopt::Lucid->new( \@option_spec );
+ $opt = Getopt::Lucid->new( \@option_spec, \%parameters );
  $opt = Getopt::Lucid->new( \@option_spec, \@option_array );
+ $opt = Getopt::Lucid->new( \@option_spec, \@option_array, \%parameters );
 
 Creates a new Getopt::Lucid object.  An array reference to an option spec is
 required as an argument.  (See [/USAGE] for a description of the object spec).
 By default, objects will be set to read @ARGV for command line options. An
 optional second argument with a reference to an array will use that array for
-option processing instead.  For typical cases, users will likely prefer
-to call {getopt} instead, which creates a new object and parses the command
-line with a single function call.
+option processing instead.  The final argument may be a hashref of parameters.
+The only valid parameter currently is:
+
+* strict -- enables strict mode when true
+
+For typical cases, users will likely prefer to call {getopt} instead, which
+creates a new object and parses the command line with a single function call.
 
 == append_defaults()
 
@@ -1323,6 +1332,15 @@ Resets the stored defaults to the original values from the options
 specification, recalculates the result of processing the command line with the
 restored defaults, and returns a hash with the resulting options.  This
 undoes the effect of a {merge_defaults} or {add_defaults} call.
+
+= API CHANGES
+
+In 1.00, the following API changes have been made:
+
+* {new()} now takes an optional hashref of parameters as the last
+argument
+* The global {$STRICT} variable has been replaced with a per-object
+parameter {strict}
 
 = SEE ALSO
 
