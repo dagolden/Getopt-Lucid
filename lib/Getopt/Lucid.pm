@@ -23,7 +23,7 @@ my $VALID_NAME      = qr/$VALID_LONG|$VALID_SHORT|$VALID_BARE/;
 my $SHORT_BUNDLE    = qr/-[$VALID_STARTCHAR]{2,}/;
 my $NEGATIVE        = qr/(?:--)?no-/;
 
-my @valid_keys = qw( name type required default nocase valid needs canon );
+my @valid_keys = qw( name type default nocase valid needs canon );
 my @valid_types = qw( switch counter parameter list keypair);
 
 sub Switch  {
@@ -50,9 +50,9 @@ sub Keypair {
     return bless $self, "Getopt::Lucid::Spec";
 }
 
-package # hide from PAUSE
+package
   Getopt::Lucid::Spec;
-our $VERSION = $Getopt::Lucid::VERSION;
+$Getopt::Lucid::Spec::VERSION = $Getopt::Lucid::VERSION;
 
 # alternate way to specify validation
 sub valid {
@@ -62,8 +62,6 @@ sub valid {
     $self->{valid} = $self->{type} eq 'keypair' ? [ @_ ] : shift;
     return $self;
 }
-
-sub required { my $self = shift; $self->{required} = 1; return $self };
 
 sub default {
     my $self = shift;
@@ -214,14 +212,30 @@ sub getopt {
             push @passthrough, $orig;
         }
     }
-    _check_required($self);
-    _check_prereqs($self);
     _recalculate_options($self);
     @{$self->{target}} = (@passthrough, @{$self->{target}});
     return $self;
 }
 
 BEGIN { *getopts = \&getopt }; # handy alias
+
+#--------------------------------------------------------------------------#
+# validate
+#--------------------------------------------------------------------------#
+
+sub validate {
+  my ($self, $arg) = @_;
+  throw_usage("Getopt::Lucid->validate() takes an optional hashref argument")
+    unless $arg && ref($arg) eq 'HASH';
+
+  for my $p ( @{$arg->{requires}} ) {
+      throw_argv("Required option '$self->{spec}{$p}{canon}' not found")
+          if ( ! $self->{seen}{$p} );
+  }
+  _check_prereqs($self);
+
+  return $self;
+}
 
 #--------------------------------------------------------------------------#
 # merge_defaults()
@@ -358,18 +372,6 @@ sub _check_prereqs {
                        "requires option '$self->{spec}{$_}{canon}'")
                 unless $self->{seen}{$_};
         }
-    }
-}
-
-#--------------------------------------------------------------------------#
-# _check_required()
-#--------------------------------------------------------------------------#
-
-sub _check_required {
-    my ($self) = @_;
-    for ( keys %{$self->{spec}} ) {
-        throw_argv("Required option '$self->{spec}{$_}{canon}' not found")
-            if ( $self->{spec}{$_}{required} && ! $self->{seen}{$_} );
     }
 }
 
@@ -781,7 +783,7 @@ __END__
     Switch("help|h")
   );
 
-  $opt = Getopt::Lucid->getopt( \@specs );
+  $opt = Getopt::Lucid->getopt( \@specs )->validate;
 
   $verbosity = $opt->get_verbose;
   @libs = $opt->get_lib;
@@ -792,16 +794,19 @@ __END__
   # advanced option specifications
 
   @adv_spec = (
-    Param("input")->required,          # required
+    Param("input"),
     Param("mode")->default("tcp"),     # defaults
     Param("host")->needs("port"),      # dependencies
     Param("port")->valid(qr/\d+/),     # regex validation
     Param("config")->valid(sub { -r }),# custom validation
     Param("help")->anycase,            # case insensitivity
   );
+  $opt = Getopt::Lucid->getopt( \@adv_spec );
+  $opt->validate( 'requires' => ['input'] );
 
   # example with a config file
 
+  $opt = Getopt::Lucid->getopt( \@adv_spec );
   use Config::Std;
   if ( -r $opt->get_config ) {
     read_config( $opt->get_config() => my %config_hash );
@@ -997,6 +1002,12 @@ argument is needed.
 
 == Validation
 
+Validation happens in two stages.  First, individual parameters may have
+validation criteria added to them.  Second, the parsed options object may be
+validated by checking that all requirements or prerequires are met.
+
+=== Parameter validation
+
 The Param, List, and Keypair option types may be provided an optional
 validation specification.  Values provided on the command line will be
 validated according to the specification or an exception will be thrown.
@@ -1014,14 +1025,13 @@ modifier or later modified with {append_defaults}, {merge_defaults}, or
 If no default is explictly provided, validation is only applied if the option
 appears on the command line. (In other words, the built-in defaults are always
 considered valid if the option does not appear.)  If this is not desired, the
-{required()} modifier should be used to force users to provide an explicit
-value.
+{required} option to the {validate} method should be used to force users to
+provide an explicit value.
 
   # Must be provided and is thus always validated
-  Param("width")->valid(qr/\d+/)->required
-
-  # Can be left blank, but is validated if provided
-  Param("height")->valid(qr/\d+/)
+  @spec = ( Param("width")->valid(qr/\d+/) );
+  $opt = Getopt::Lucid->getopt(\@spec);
+  $opt->validate( {requires => ['width']} );
 
 For validation subroutines, the value found on the command line is passed as
 the first element of {@_}, and {$_} is also set equal to the first element.
@@ -1037,6 +1047,26 @@ may be removed in a future version of Getopt::Lucid.
 
   # deprecated
   Param("height", qr/\d+/)
+
+=== Options object validation
+
+The {validate} method should be called on the result of {getopt}.  This will
+check that all parameter prerequisites defined by {needs} have been met.  It
+also takes a hashref of arguments.  The optional {requires} argument gives an
+arrayref of parameters that must exist.
+
+The reason that object validation is done separate from {getopt} is to allow
+for better control over different options that might be required or to allow
+some dependencies (i.e. from {needs}) to be met via a configuration file.
+
+  @spec = (
+    Param("action")->needs(qw/user password/),
+    Param("user"),
+    Param("password"),
+  );
+  $opt = Getopt::Lucid->getopt(\@spec);
+  $opt->merge_defaults( read_config() ); # provides 'user' & 'password'
+  $opt->validate({requires => ['action']});
 
 == Parsing the Command Line
 
@@ -1106,7 +1136,7 @@ For option names with dashes, underscores should be substitued in the accessor
 calls.  E.g.
 
   @spec = (
-    Param("--input-file|-i")->required(),
+    Param("--input-file|-i")
   );
 
   $opt = Getopt::Long->getopt( \@spec );
@@ -1247,6 +1277,21 @@ The only valid parameter currently is:
 For typical cases, users will likely prefer to call {getopt} instead, which
 creates a new object and parses the command line with a single function call.
 
+== validate()
+
+  $opt->validate();
+  $opt->validate( \%arguments );
+
+Takes an optional argument hashref, validates that all requirements and
+prerequisites are met or throws an error.  Valid argument keys are:
+
+* {requires} -- an arrayref of options that must exist in the options
+object.
+
+This method returns the object for convenient chaining:
+
+  $opt = Getopt::Lucid->getopt(\@spec)->validate;
+
 == append_defaults()
 
  %options = append_defaults( %config_hash );
@@ -1341,6 +1386,8 @@ In 1.00, the following API changes have been made:
 argument
 * The global {$STRICT} variable has been replaced with a per-object
 parameter {strict}
+* The {required} modifier has been removed and a new {validate} method
+has been added to facilitate late/custom checks of required options
 
 = SEE ALSO
 

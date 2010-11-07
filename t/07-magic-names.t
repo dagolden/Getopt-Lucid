@@ -79,12 +79,13 @@ BEGIN {
     push @good_specs, { 
         label => "avoid ambiguity (RT 33462)",
         spec  => [
-            Param("config|c")->required(),
+            Param("config|c"),
             Switch("help|h")->anycase(),
         ],
         cases => [
             { 
                 argv    => [ qw( -c /home/newuat5/nas/Abilit/newuat6/test_home/Data/tdg/testdatengenerator.conf ) ],
+                required => ['config'],
                 result  => { 
                     "config" => "/home/newuat5/nas/Abilit/newuat6/test_home/Data/tdg/testdatengenerator.conf", 
                     "help" => 0,
@@ -123,7 +124,9 @@ while ( $trial = shift @good_specs ) {
             my $gl = Getopt::Lucid->new($trial->{spec}, \@cmd_line);
             @cmd_line = @{$case->{argv}};
             my %opts;
-            try eval { %opts = $gl->getopt->options };
+            my $valid_args = $case->{required}  ? {requires => $case->{required}}
+                                                : {};
+            try eval { %opts = $gl->getopt->validate($valid_args)->options };
             catch my $err;
             if (defined $case->{exception}) { # expected
                 ok( $err && $err->isa( $case->{exception} ), 
