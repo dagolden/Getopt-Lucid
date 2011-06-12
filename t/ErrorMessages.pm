@@ -29,6 +29,18 @@ sub _invalid_list       {sprintf("Option '%s' in %s must be scalar or array refe
 sub _invalid_keypair    {sprintf("Option '%s' in %s must be scalar or hash reference",@_)}
 sub _invalid_splat_defaults {sprintf("Argument to %s must be a hash or hash reference",@_)}
 
+sub _or_prereq_missing {
+    my $txt = sprintf("Option '%s' requires one of: ", shift);
+    $txt .= "'" . join("','",@_) . "'";
+    return $txt;
+}
+
+sub _or_prereq_multiple {
+    my $txt = sprintf("Option '--list-users' only accetps one of: ", shift);
+    $txt .= "'" . join("','",@_) . "'";
+    return $txt;
+}
+
 # keep this last;
 for (keys %t::ErrorMessages::) {
     push @t::ErrorMessages::EXPORT, $_ if $_ =~ "^_";

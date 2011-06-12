@@ -804,6 +804,53 @@ BEGIN {
     };
 
     push @good_specs, {
+        label => "or dependencies",
+        spec  => [
+            Switch("--list-users")->needs_or(qw( --all --userid --username )),
+            Switch("--all|-a"),
+            Param("--userid|-u"),
+            Param("--username|-n"),
+        ],
+        cases => [
+            {
+                argv    => [ qw( ) ],
+                result  => { "list-users" => 0, "all" => 0, userid => undef, username => undef },
+                desc    => "no options"
+            },
+            {
+                argv    => [ qw( --list-users ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _or_prereq_missing("--list-users", "--all", "--userid", "--username"),
+                desc    => "no prereq defined"
+            },
+            {
+                argv    => [ qw(--list-users --userid 5 --username bob ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _or_prereq_multiple("--list-users", "--userid", "--username"),
+                desc    => "too many prereqs defined"
+            },
+            {
+                argv    => [ qw( --list-users --all ) ],
+                result  => { "list-users" => 1, "all" => 1, userid => undef, username => undef },
+                desc    => "prereq present"
+            },
+            {
+                argv    => [ qw( --list-users --userid 5 ) ],
+                result  => { "list-users" => 1, "all" => 0, "userid" => 5, "username" => undef },
+                desc    => "prereq present"
+            },
+            {
+                argv    => [ qw( --list-users --username bob ) ],
+                result  => { "list-users" => 1, "all" => 0, "userid" => undef, "username" => 'bob' },
+                desc    => "prereq present"
+            },
+
+
+        ]
+    };
+
+
+    push @good_specs, {
         label => "single dependency with alias",
         spec  => [
             Param("--question"),

@@ -396,11 +396,11 @@ sub _check_prereqs {
             }
             if ($find_one == 0) {
                 throw_argv("Option '$self->{spec}{$key}{canon}' ".
-                           "requires one of: '" . join("','",@not_found) . "'")
+                           "requires one of: '--" . join("','--",@not_found) . "'")
             }
             elsif ($find_one > 1) {
                 throw_argv("Option '$self->{spec}{$key}{canon}' ".
-                           "only accetps one of: '" . join("','",@found) . "'") 
+                           "only accetps one of: '--" . join("','--",@found) . "'") 
             }
         }
 
