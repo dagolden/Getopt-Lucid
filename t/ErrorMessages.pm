@@ -9,7 +9,6 @@ sub _switch_twice       {sprintf("Switch used twice: %s\n",@_)}
 sub _switch_value       {sprintf("Switch can't take a value: %s=%s\n",@_)}
 sub _counter_value      {sprintf("Counter option can't take a value: %s=%s\n",@_)}
 sub _param_ambiguous    {sprintf("Ambiguous value for %s could be option: %s\n",@_)}
-sub _param_missing      {sprintf("Missing value for %s\n",@_)}
 sub _param_invalid      {sprintf("Invalid parameter %s = %s\n",@_)}
 sub _param_neg_value    {sprintf("Negated parameter option can't take a value: %s=%s\n",@_)}
 sub _list_invalid       {sprintf("Invalid list option %s = %s\n",@_)}
@@ -29,6 +28,7 @@ sub _unknown_prereq     {sprintf("Prerequisite '%s' for '%s' is not recognized\n
 sub _invalid_list       {sprintf("Option '%s' in %s must be scalar or array reference\n",@_)}
 sub _invalid_keypair    {sprintf("Option '%s' in %s must be scalar or hash reference\n",@_)}
 sub _invalid_splat_defaults {sprintf("Argument to %s must be a hash or hash reference\n",@_)}
+sub _no_value           {sprintf("Option '%s' requires a value\n",@_)}
 
 # keep this last;
 for (keys %t::ErrorMessages::) {

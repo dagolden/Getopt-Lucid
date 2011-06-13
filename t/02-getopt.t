@@ -243,7 +243,7 @@ BEGIN {
             {
                 argv    => [ qw( --input ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
-                error_msg => _param_missing("--input"),
+                error_msg => _no_value("--input"),
                 desc    => "missing param value"
             },
             {
@@ -861,6 +861,37 @@ BEGIN {
         ]
     };
 
+    push @good_specs, {
+        label => "Null Param,List,Keypair",
+        spec  => [
+            Param("--param"),
+            List("--list"),
+            Keypair("--key-pair"),
+        ],
+        cases => [
+            {
+                argv    => [ qw( --param ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _no_value("--param"),
+                desc    => "parameter with no value",
+            },
+            {
+                argv    => [ qw( --list ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _no_value("--list"),
+                desc    => "list with no value",
+            },
+            {
+                argv    => [ qw( --key-pair ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _no_value("--key-pair"),
+                desc    => "keypair with no value",
+            },
+
+        ]
+    };
+
+
     # Bad specification testing
 
     push @bad_specs, {
@@ -965,6 +996,7 @@ BEGIN {
         error_msg => _unknown_prereq("--wager","--guess"),
         label => "unknown prereq",
     };
+    
 
 } #BEGIN
 
