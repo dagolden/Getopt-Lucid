@@ -1066,6 +1066,17 @@ line or else an exception is thrown.  No argument is needed.
     Param("input")->required(),
   );
 
+=== required_or(CHAIN)
+
+Indicates that one and only one of the options in this CHAIN 
+~must~ appear on the command line or else an exception is thrown.
+
+  @spec = (
+    Param("userid")->required('user'),
+    Param("username")->required_or('user')
+  );
+
+
 === needs()
 
 Takes as an argument a list of option names or aliases of
@@ -1077,6 +1088,20 @@ exception is thrown.
     Param("input")->needs("output"),
     Param("output),
   );
+
+=== needs_or()
+
+Takes as an argument a list of option names or aliases of
+dependencies.  One and only one of the options can appear on the command line. 
+If 0 or more than one of the options appear on the command line an
+exception is thrown.
+
+  @spec = (
+    Param("input")->needs_or("userid", "username"),
+    Param("userid"),
+    Param("username"),
+  );
+
 
 === anycase()
 
