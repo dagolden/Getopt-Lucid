@@ -41,6 +41,18 @@ sub _or_prereq_multiple {
     return $txt;
 }
 
+sub _required_or {
+    my $txt = "Must define one of: ";
+    $txt .= "'" . join("','",@_) . "'";
+    return $txt;
+}
+
+sub _required_or_multiple {
+    my $txt = "Define only one of: ";
+    $txt .= "'" . join("','",@_) . "'";
+    return $txt;
+}
+
 # keep this last;
 for (keys %t::ErrorMessages::) {
     push @t::ErrorMessages::EXPORT, $_ if $_ =~ "^_";

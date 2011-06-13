@@ -442,10 +442,10 @@ sub _check_required {
             }
 
             if ($find_one == 0) {
-                throw_argv("Must define one of: '" . join("','",@not_found) . "'")
+                throw_argv("Must define one of: '--" . join("','--",@not_found) . "'")
             }
             elsif ($find_one > 1) {
-                throw_argv("Only define one of: '" . join("','",@found) . "'")
+                throw_argv("Define only one of: '--" . join("','--",@found) . "'")
             }
 
         }
