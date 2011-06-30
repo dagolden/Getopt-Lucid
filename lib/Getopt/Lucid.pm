@@ -1150,7 +1150,7 @@ leading dashes. E.g.
     Keypair("--define|-D"),
   );
 
-  $opt = Getopt::Long->getopt( \@spec );
+  $opt = Getopt::Lucid->getopt( \@spec );
   print $opt->get_test ? "True" : "False";
   $opt->set_test(1);
 
@@ -1161,7 +1161,7 @@ calls.  E.g.
     Param("--input-file|-i")
   );
 
-  $opt = Getopt::Long->getopt( \@spec );
+  $opt = Getopt::Lucid->getopt( \@spec );
   print $opt->get_input_file;
 
 This can create an ambiguous case if a similar option exists with underscores
