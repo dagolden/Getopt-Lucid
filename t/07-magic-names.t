@@ -23,8 +23,8 @@ sub why {
 my ($num_tests, @good_specs);
 
 BEGIN {
-    
-    push @good_specs, { 
+
+    push @good_specs, {
         label => "magic bare names in spec",
         spec  => [
             Counter("ver-bose|v"),
@@ -33,71 +33,71 @@ BEGIN {
             Param("f"),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( --ver-bose v -rtvf=test --r test -- test ) ],
-                result  => { 
-                    "ver-bose" => 3, 
-                    "test" => 2, 
-                    "r" => 2, 
+                result  => {
+                    "ver-bose" => 3,
+                    "test" => 2,
+                    "r" => 2,
                     "f" => "test",
                 },
                 after   => [qw( test )],
                 desc    => "all three types in command line"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( --ver-bose v -rtvf fest --r test -- test ) ],
-                result  => { 
-                    "ver-bose" => 3, 
-                    "test" => 2, 
-                    "r" => 2, 
+                result  => {
+                    "ver-bose" => 3,
+                    "test" => 2,
+                    "r" => 2,
                     "f" => "fest",
                 },
                 after   => [qw( test )],
                 desc    => "all three types in command line"
-            },            
-            { 
+            },
+            {
                 argv    => [ qw( -test ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _invalid_argument("-e"),
-                desc    => "single dash with word" 
-            },            
-            { 
+                desc    => "single dash with word"
+            },
+            {
                 argv    => [ qw( f test ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _param_ambiguous("f", "test"),
-                desc    => "ambiguous param -- bareword" 
-            },            
-            { 
+                desc    => "ambiguous param -- bareword"
+            },
+            {
                 argv    => [ qw( f --test ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _param_ambiguous("f", "--test"),
-                desc    => "ambiguous param -- long form" 
-            },            
+                desc    => "ambiguous param -- long form"
+            },
         ]
     };
 
-    push @good_specs, { 
+    push @good_specs, {
         label => "avoid ambiguity (RT 33462)",
         spec  => [
             Param("config|c"),
             Switch("help|h")->anycase(),
         ],
         cases => [
-            { 
+            {
                 argv    => [ qw( -c /home/newuat5/nas/Abilit/newuat6/test_home/Data/tdg/testdatengenerator.conf ) ],
                 required => ['config'],
-                result  => { 
-                    "config" => "/home/newuat5/nas/Abilit/newuat6/test_home/Data/tdg/testdatengenerator.conf", 
+                result  => {
+                    "config" => "/home/newuat5/nas/Abilit/newuat6/test_home/Data/tdg/testdatengenerator.conf",
                     "help" => 0,
                 },
                 after   => [],
                 desc    => "single dash option"
-            },            
+            },
         ]
     };
 
 
-} #BEGIN 
+} #BEGIN
 
 for my $t (@good_specs) {
     $num_tests += 1 + 2 * @{$t->{cases}};
@@ -115,7 +115,7 @@ while ( $trial = shift @good_specs ) {
     try eval { Getopt::Lucid->new($trial->{spec}, \@cmd_line) };
     catch my $err;
     is( $err, undef, "$trial->{label}: spec should validate" );
-    SKIP: {    
+    SKIP: {
         if ($err) {
             my $num_tests = 2 * @{$trial->{cases}};
             skip "because $trial->{label} spec did not validate", $num_tests;
@@ -129,17 +129,17 @@ while ( $trial = shift @good_specs ) {
             try eval { %opts = $gl->getopt->validate($valid_args)->options };
             catch my $err;
             if (defined $case->{exception}) { # expected
-                ok( $err && $err->isa( $case->{exception} ), 
+                ok( $err && $err->isa( $case->{exception} ),
                     "$trial->{label}: $case->{desc} should throw exception" )
                     or diag why( got => ref($err), expected => $case->{exception});
-                is( $err, $case->{error_msg}, 
+                is( $err, $case->{error_msg},
                     "$trial->{label}: $case->{desc} error message correct");
             } elsif ($err) { # unexpected
                 fail( "$trial->{label}: $case->{desc} threw an exception")
                     or diag "Exception is '$err'";
                 pass("$trial->{label}: skipping \@ARGV check");
             } else { # no exception
-                is_deeply( \%opts, $case->{result}, 
+                is_deeply( \%opts, $case->{result},
                     "$trial->{label}: $case->{desc}" ) or
                     diag why( got => \%opts, expected => $case->{result});
                 my $argv_after = $case->{after} || [];

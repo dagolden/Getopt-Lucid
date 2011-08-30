@@ -1,4 +1,4 @@
-# Getopt::Lucid::Exception  
+# Getopt::Lucid::Exception
 use strict;
 use Test::More 0.62;
 #--------------------------------------------------------------------------#
