@@ -3,6 +3,7 @@ use strict;
 use warnings;
 package Getopt::Lucid::Exception;
 # ABSTRACT: Exception classes for Getopt::Lucid
+# VERSION
 
 use Exception::Class 1.23 (
     "Getopt::Lucid::Exception" => {

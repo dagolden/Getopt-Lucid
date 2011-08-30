@@ -3,6 +3,7 @@ use strict;
 use warnings;
 package Getopt::Lucid;
 # ABSTRACT: Clear, readable syntax for command line processing
+# VERSION
 
 our @EXPORT_OK = qw(Switch Counter Param List Keypair);
 our %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
