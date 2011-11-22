@@ -43,3 +43,41 @@ TODO list for Perl module Getopt::Lucid
   "define is\==value" giving "is=" => "value" (Does anyone really need
   this?)
 
+#--------------------------------------------------------------------------#
+# command brainstorming
+#--------------------------------------------------------------------------#
+
+Want to support this sort of thing:
+
+ $ program [OPTIONS] command [SUBOPTIONS] [ARGS]
+
+Assuming that 'command' dispatches to a subroutine, then do we just hand off
+suboptions and args to the subroutine?  Or do we define the subcommand specs
+up front and do the processing and hand the result to the subroutine?
+
+Handing off may be the most flexible for end users.  It theoretically allows
+pluggable commands to register themselves without also having to register
+their options -- or maybe they *should* register their options.
+
+  $spec = [
+      @global_options,
+      Command('cmd', $coderef, $suboption_spec),
+      ...
+  ];
+
+Then what would coderef get?
+
+  sub command_guts {
+      my ($name, $global_opts, $local_opts, @argv) = @_;
+  }
+
+Or, should the global and local options get merged automatically? Problem
+with merging is that it doesn't allow duplicate global and suboption names.
+That might be OK, since that's a confusing case, but should it be
+totally *prohibited*?
+
+It's also not clear how config files could/should affect global options
+or suboptions.
+
+
+
