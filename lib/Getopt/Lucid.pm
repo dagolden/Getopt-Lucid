@@ -822,7 +822,7 @@ standard, Getopt::Lucid relies on a more verbose, plain-English option
 specification as compared against the more symbolic approach of Getopt::Long.
 Key features include:
 
-* Five option types: switches, counters, parameters, lists, and keypairs
+* Five option types: switches, counters, parameters, lists, and key pairs
 * Three option styles: long, short (including bundled), and bare (without
 dashes)
 * Specification of defaults, required options and option dependencies
@@ -839,7 +839,7 @@ user control of precedence
 Getopt::Lucid support three kinds of option styles: long-style ("--foo"),
 short-style ("-f") and bareword style ("foo").  Short-style options
 are automatically unbundled during command line processing if a single dash
-is followed by more than one letter (e.g. "-xzf" becomes "-x -z -f" ).
+is followed by more than one letter (e.g. {-xzf} becomes {-x -z -f} ).
 
 Each option is identified in the specification with a string consisting of the
 option "name" followed by zero or more "aliases", with any alias (and each
@@ -1005,7 +1005,7 @@ argument is needed.
 
 Validation happens in two stages.  First, individual parameters may have
 validation criteria added to them.  Second, the parsed options object may be
-validated by checking that all requirements or prerequires are met.
+validated by checking that all requirements collectively are met.
 
 === Parameter validation
 
@@ -1023,7 +1023,7 @@ Validation is also applied to default values provided via the {default()}
 modifier or later modified with {append_defaults}, {merge_defaults}, or
 {replace_defaults}.  This ensures internal consistency.
 
-If no default is explictly provided, validation is only applied if the option
+If no default is explicitly provided, validation is only applied if the option
 appears on the command line. (In other words, the built-in defaults are always
 considered valid if the option does not appear.)  If this is not desired, the
 {required} option to the {validate} method should be used to force users to
@@ -1106,7 +1106,7 @@ sign and the list element or key immediately after the option name:
 
 As with all options, negation is processed in order, allowing a "reset" in
 the middle of command line processing.  This may be useful for those using
-command aliases who wish to "switch off" options in the alias.  E.g, in unix:
+command aliases who wish to "switch off" options in the alias.  E.g, in Unix:
 
   $ alias wibble = wibble.pl --verbose
   $ wibble --no-verbose
@@ -1133,7 +1133,7 @@ leading dashes. E.g.
   print $opt->get_test ? "True" : "False";
   $opt->set_test(1);
 
-For option names with dashes, underscores should be substitued in the accessor
+For option names with dashes, underscores should be substituted in the accessor
 calls.  E.g.
 
   @spec = (
@@ -1230,7 +1230,7 @@ program to respond differently to each class of exception.
 
 == Ambiguous Cases and Gotchas
 
-=== One-character aliases and anycase
+=== One-character aliases and {anycase}
 
   @spec = (
     Counter("verbose|v")->anycase,
@@ -1303,10 +1303,10 @@ defaults, recalculates the result of processing the command line with the
 revised defaults, and returns a hash with the resulting options.  Each
 key/value pair in the passed hash is added to the stored defaults.  For Switch
 and Param options, the value in the passed hash will overwrite any
-pre-existing value.  For Counter options, the value is added to any
-pre-existing value.  For List options, the value (or values, if the value is an
+preexisting value.  For Counter options, the value is added to any
+preexisting value.  For List options, the value (or values, if the value is an
 array reference) will be pushed onto the end of the list of existing values.
-For Keypair options, the keypairs will be added to the existing hash,
+For Keypair options, the key/value pairs will be added to the existing hash,
 overwriting existing key/value pairs (just like merging two hashes).  Keys
 which are not valid names from the options specification will be ignored.
 
@@ -1340,7 +1340,7 @@ Takes a hash or hash reference of new default values, modifies the stored
 defaults, recalculates the result of processing the command line with the
 revised defaults, and returns a hash with the resulting options.  Each
 key/value pair in the passed hash is added to the stored defaults, overwriting
-any pre-existing value.  Keys which are not valid names from the options
+any preexisting value.  Keys which are not valid names from the options
 specification will be ignored.
 
 == names()
