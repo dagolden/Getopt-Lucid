@@ -1,9 +1,6 @@
 severity = 5
 verbose = 8
 
-[TestingAndDebugging::ProhibitNoStrict]
-allow = refs
-
 [Variables::ProhibitPunctuationVars]
 allow = $@ $!
 
@@ -17,7 +14,8 @@ allow = $@ $!
 [-References::ProhibitDoubleSigils]
 [-RegularExpressions::RequireExtendedFormatting]
 [-InputOutput::ProhibitTwoArgOpen]
-[-Lax::ProhibitStringyEval::ExceptForRequire]
+[-TestingAndDebugging::ProhibitNoStrict]
 
 # Turn this on
+[Lax::ProhibitStringyEval::ExceptForRequire]
 

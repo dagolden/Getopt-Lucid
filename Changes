@@ -1,8 +1,22 @@
 Revision history for Perl module Getopt::Lucid
 
-0.19
+{{$NEXT}}
 
+    - fixed typos in Pod
+
+1.00      2011-12-10 23:32:42 EST5EDT
+
+    - new() takes optional hashref of parameters
+    - Remove global $STRICT and replace with 'strict' object parameter
+    - Remove 'required' modifier for parameters and provide a new
+      'validate' method for late checking of prerequisites
+    - Fix missing $VERSION
+
+0.19      2010-11-05 17:07:26 EST5EDT
+
+    - Added valid() modifier and deprecated old way of validating options
     - Added getopts() as an alias for getopt()
+    - Allows setting param default to undef [Robert Bohne]
 
 0.18 Thu Mar 12 00:11:11 EDT 2009
     - Options with validation specs will not fail just because the option

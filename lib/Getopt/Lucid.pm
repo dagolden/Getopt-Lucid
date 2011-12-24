@@ -1,10 +1,10 @@
-package Getopt::Lucid;
 use 5.006;
 use strict;
 use warnings;
+package Getopt::Lucid;
+# ABSTRACT: Clear, readable syntax for command line processing
+# VERSION
 
-our $VERSION = '0.19';
-$VERSION = eval $VERSION;
 our @EXPORT_OK = qw(Switch Counter Param List Keypair);
 our %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 our @ISA = qw( Exporter );
@@ -12,7 +12,7 @@ our @ISA = qw( Exporter );
 use Carp;
 use Exporter ();
 use Getopt::Lucid::Exception;
-use Storable qw(dclone);
+use Storable 2.16 qw(dclone);
 
 # Definitions
 my $VALID_STARTCHAR = "a-zA-Z0-9";
@@ -24,12 +24,8 @@ my $VALID_NAME      = qr/$VALID_LONG|$VALID_SHORT|$VALID_BARE/;
 my $SHORT_BUNDLE    = qr/-[$VALID_STARTCHAR]{2,}/;
 my $NEGATIVE        = qr/(?:--)?no-/;
 
-my @valid_keys = qw( name type required default nocase valid needs canon );
+my @valid_keys = qw( name type default nocase valid needs canon );
 my @valid_types = qw( switch counter parameter list keypair);
-
-use vars qw( $STRICT );
-$STRICT = 0;
-
 
 sub Switch  {
     return bless { name => shift, type => 'switch' },
@@ -55,20 +51,18 @@ sub Keypair {
     return bless $self, "Getopt::Lucid::Spec";
 }
 
-package # hide from PAUSE
+package
   Getopt::Lucid::Spec;
-our $VERSION = $Getopt::Lucid::VERSION;
+$Getopt::Lucid::Spec::VERSION = $Getopt::Lucid::VERSION;
 
 # alternate way to specify validation
 sub valid {
     my $self = shift;
     Getopt::Lucid::throw_spec("valid() is not supported for '$self->{type}' options")
-      unless grep { $self->{type} eq $_ } qw/param list keypair/;
+      unless grep { $self->{type} eq $_ } qw/parameter list keypair/;
     $self->{valid} = $self->{type} eq 'keypair' ? [ @_ ] : shift;
     return $self;
 }
-
-sub required { my $self = shift; $self->{required} = 1; return $self };
 
 sub default {
     my $self = shift;
@@ -103,17 +97,23 @@ package Getopt::Lucid;
 # new()
 #--------------------------------------------------------------------------#
 
+my @params = qw/strict target/;
+
 sub new {
     my ($class, $spec, $target) = @_;
+    my $args = ref($_[-1]) eq 'HASH' ? pop(@_) : {};
+    $args->{target} = ref($target) eq 'ARRAY' ? $target : \@ARGV;
+    my $self = {};
+    $self->{$_} = $args->{$_} for @params;
+    $self->{raw_spec} = $spec;
+    bless ($self, ref($class) ? ref($class) : $class);
     throw_usage("Getopt::Lucid->new() requires an option specification array reference")
-        unless ref($spec) eq 'ARRAY';
-    my $self = bless ({}, ref($class) ? ref($class) : $class);
-    _parse_spec($self, $spec);
+        unless ref($self->{raw_spec}) eq 'ARRAY';
+    _parse_spec($self);
     _set_defaults($self);
     $self->{options} = {};
     $self->{parsed} = [];
     $self->{seen}{$_} = 0 for keys %{$self->{spec}};
-    $self->{target} = $target || \@ARGV;
     return $self;
 }
 
@@ -185,7 +185,7 @@ sub getopt {
     if ( $self eq 'Getopt::Lucid' ) {
         throw_usage("Getopt::Lucid->getopt() requires an option specification array reference")
             unless ref($spec) eq 'ARRAY';
-        $self = new($self,$spec,$target)
+        $self = new(@_)
     }
     my (@passthrough);
     while (@{$self->{target}}) {
@@ -213,14 +213,30 @@ sub getopt {
             push @passthrough, $orig;
         }
     }
-    _check_required($self);
-    _check_prereqs($self);
     _recalculate_options($self);
     @{$self->{target}} = (@passthrough, @{$self->{target}});
     return $self;
 }
 
 BEGIN { *getopts = \&getopt }; # handy alias
+
+#--------------------------------------------------------------------------#
+# validate
+#--------------------------------------------------------------------------#
+
+sub validate {
+  my ($self, $arg) = @_;
+  throw_usage("Getopt::Lucid->validate() takes an optional hashref argument")
+    unless $arg && ref($arg) eq 'HASH';
+
+  for my $p ( @{$arg->{requires}} ) {
+      throw_argv("Required option '$self->{spec}{$p}{canon}' not found")
+          if ( ! $self->{seen}{$p} );
+  }
+  _check_prereqs($self);
+
+  return $self;
+}
 
 #--------------------------------------------------------------------------#
 # merge_defaults()
@@ -361,18 +377,6 @@ sub _check_prereqs {
 }
 
 #--------------------------------------------------------------------------#
-# _check_required()
-#--------------------------------------------------------------------------#
-
-sub _check_required {
-    my ($self) = @_;
-    for ( keys %{$self->{spec}} ) {
-        throw_argv("Required option '$self->{spec}{$_}{canon}' not found")
-            if ( $self->{spec}{$_}{required} && ! $self->{seen}{$_} );
-    }
-}
-
-#--------------------------------------------------------------------------#
 # _counter()
 #--------------------------------------------------------------------------#
 
@@ -390,7 +394,7 @@ sub _counter {
 sub _find_arg {
     my ($self, $arg) = @_;
 
-    $arg =~ s/^-*// unless $STRICT;
+    $arg =~ s/^-*// unless $self->{strict};
     return $self->{alias_hr}{$arg} if exists $self->{alias_hr}{$arg};
 
     for ( keys %{$self->{alias_nocase}} ) {
@@ -485,13 +489,14 @@ sub _parameter {
 #--------------------------------------------------------------------------#
 
 sub _parse_spec {
-    my ($self,$spec) = @_;
+    my ($self) = @_;
+    my $spec = $self->{raw_spec};
     for my $opt ( @$spec ) {
         my $name = $opt->{name};
         my @names = split( /\|/, $name );
         $opt->{canon} = $names[0];
         _validate_spec($self,\@names,$opt);
-        @names = map { s/^-*//; $_ } @names unless $STRICT; ## no critic
+        @names = map { s/^-*//; $_ } @names unless $self->{strict}; ## no critic
         for (@names) {
             $self->{alias_hr}{$_} = $names[0];
             $self->{alias_nocase}{$_} = $names[0]  if $opt->{nocase};
@@ -677,7 +682,7 @@ sub _validate_spec {
     my ($self,$names,$details) = @_;
     for my $name ( @$names ) {
         my $alt_name = $name;
-        $alt_name =~ s/^-*// unless $STRICT;
+        $alt_name =~ s/^-*// unless $self->{strict};
         throw_spec(
             "'$name' is not a valid option name/alias"
         ) unless $name =~ /^$VALID_NAME$/;
@@ -775,15 +780,9 @@ sub AUTOLOAD {
 1; # modules must be true
 __END__
 
+=for Pod::Coverage getopts
+
 =begin wikidoc
-
-= NAME
-
-Getopt::Lucid - Clear, readable syntax for command line processing
-
-= VERSION
-
-This documentation describes version %%VERSION%%.
 
 = SYNOPSIS
 
@@ -800,7 +799,7 @@ This documentation describes version %%VERSION%%.
     Switch("help|h")
   );
 
-  $opt = Getopt::Lucid->getopt( \@specs );
+  $opt = Getopt::Lucid->getopt( \@specs )->validate;
 
   $verbosity = $opt->get_verbose;
   @libs = $opt->get_lib;
@@ -811,16 +810,19 @@ This documentation describes version %%VERSION%%.
   # advanced option specifications
 
   @adv_spec = (
-    Param("input")->required,          # required
+    Param("input"),
     Param("mode")->default("tcp"),     # defaults
     Param("host")->needs("port"),      # dependencies
     Param("port")->valid(qr/\d+/),     # regex validation
     Param("config")->valid(sub { -r }),# custom validation
     Param("help")->anycase,            # case insensitivity
   );
+  $opt = Getopt::Lucid->getopt( \@adv_spec );
+  $opt->validate( 'requires' => ['input'] );
 
   # example with a config file
 
+  $opt = Getopt::Lucid->getopt( \@adv_spec );
   use Config::Std;
   if ( -r $opt->get_config ) {
     read_config( $opt->get_config() => my %config_hash );
@@ -835,7 +837,7 @@ standard, Getopt::Lucid relies on a more verbose, plain-English option
 specification as compared against the more symbolic approach of Getopt::Long.
 Key features include:
 
-* Five option types: switches, counters, parameters, lists, and keypairs
+* Five option types: switches, counters, parameters, lists, and key pairs
 * Three option styles: long, short (including bundled), and bare (without
 dashes)
 * Specification of defaults, required options and option dependencies
@@ -852,7 +854,7 @@ user control of precedence
 Getopt::Lucid support three kinds of option styles: long-style ("--foo"),
 short-style ("-f") and bareword style ("foo").  Short-style options
 are automatically unbundled during command line processing if a single dash
-is followed by more than one letter (e.g. "-xzf" becomes "-x -z -f" ).
+is followed by more than one letter (e.g. {-xzf} becomes {-x -z -f} ).
 
 Each option is identified in the specification with a string consisting of the
 option "name" followed by zero or more "aliases", with any alias (and each
@@ -883,7 +885,7 @@ In practice, this means that the specification need not use dashes, but if
 used on the command line, they will be treated appropriately.
 
 Alternatively, Getopt::Lucid can operate in "strict" mode by setting
-{$Getopt::Lucid::STRICT} to a true value.  In strict mode, option names
+the C<strict> parameter to a true value.  In strict mode, option names
 and aliases may still be specified in any of the three styles, but they
 will only be parsed from the command line if they are used in exactly
 the same style.  E.g., given the name and alias "--help|-h", only "--help"
@@ -1016,6 +1018,12 @@ argument is needed.
 
 == Validation
 
+Validation happens in two stages.  First, individual parameters may have
+validation criteria added to them.  Second, the parsed options object may be
+validated by checking that all requirements collectively are met.
+
+=== Parameter validation
+
 The Param, List, and Keypair option types may be provided an optional
 validation specification.  Values provided on the command line will be
 validated according to the specification or an exception will be thrown.
@@ -1030,17 +1038,16 @@ Validation is also applied to default values provided via the {default()}
 modifier or later modified with {append_defaults}, {merge_defaults}, or
 {replace_defaults}.  This ensures internal consistency.
 
-If no default is explictly provided, validation is only applied if the option
+If no default is explicitly provided, validation is only applied if the option
 appears on the command line. (In other words, the built-in defaults are always
 considered valid if the option does not appear.)  If this is not desired, the
-{required()} modifier should be used to force users to provide an explicit
-value.
+{required} option to the {validate} method should be used to force users to
+provide an explicit value.
 
   # Must be provided and is thus always validated
-  Param("width")->valid(qr/\d+/)->required
-
-  # Can be left blank, but is validated if provided
-  Param("height")->valid(qr/\d+/)
+  @spec = ( Param("width")->valid(qr/\d+/) );
+  $opt = Getopt::Lucid->getopt(\@spec);
+  $opt->validate( {requires => ['width']} );
 
 For validation subroutines, the value found on the command line is passed as
 the first element of {@_}, and {$_} is also set equal to the first element.
@@ -1056,6 +1063,26 @@ may be removed in a future version of Getopt::Lucid.
 
   # deprecated
   Param("height", qr/\d+/)
+
+=== Options object validation
+
+The {validate} method should be called on the result of {getopt}.  This will
+check that all parameter prerequisites defined by {needs} have been met.  It
+also takes a hashref of arguments.  The optional {requires} argument gives an
+arrayref of parameters that must exist.
+
+The reason that object validation is done separate from {getopt} is to allow
+for better control over different options that might be required or to allow
+some dependencies (i.e. from {needs}) to be met via a configuration file.
+
+  @spec = (
+    Param("action")->needs(qw/user password/),
+    Param("user"),
+    Param("password"),
+  );
+  $opt = Getopt::Lucid->getopt(\@spec);
+  $opt->merge_defaults( read_config() ); # provides 'user' & 'password'
+  $opt->validate({requires => ['action']});
 
 == Parsing the Command Line
 
@@ -1094,7 +1121,7 @@ sign and the list element or key immediately after the option name:
 
 As with all options, negation is processed in order, allowing a "reset" in
 the middle of command line processing.  This may be useful for those using
-command aliases who wish to "switch off" options in the alias.  E.g, in unix:
+command aliases who wish to "switch off" options in the alias.  E.g, in Unix:
 
   $ alias wibble = wibble.pl --verbose
   $ wibble --no-verbose
@@ -1121,11 +1148,11 @@ leading dashes. E.g.
   print $opt->get_test ? "True" : "False";
   $opt->set_test(1);
 
-For option names with dashes, underscores should be substitued in the accessor
+For option names with dashes, underscores should be substituted in the accessor
 calls.  E.g.
 
   @spec = (
-    Param("--input-file|-i")->required(),
+    Param("--input-file|-i")
   );
 
   $opt = Getopt::Long->getopt( \@spec );
@@ -1218,7 +1245,7 @@ program to respond differently to each class of exception.
 
 == Ambiguous Cases and Gotchas
 
-=== One-character aliases and anycase
+=== One-character aliases and {anycase}
 
   @spec = (
     Counter("verbose|v")->anycase,
@@ -1250,15 +1277,36 @@ accessor code.  Avoid identical names with mixed dash and underscore styles.
 == new()
 
  $opt = Getopt::Lucid->new( \@option_spec );
+ $opt = Getopt::Lucid->new( \@option_spec, \%parameters );
  $opt = Getopt::Lucid->new( \@option_spec, \@option_array );
+ $opt = Getopt::Lucid->new( \@option_spec, \@option_array, \%parameters );
 
 Creates a new Getopt::Lucid object.  An array reference to an option spec is
 required as an argument.  (See [/USAGE] for a description of the object spec).
 By default, objects will be set to read @ARGV for command line options. An
 optional second argument with a reference to an array will use that array for
-option processing instead.  For typical cases, users will likely prefer
-to call {getopt} instead, which creates a new object and parses the command
-line with a single function call.
+option processing instead.  The final argument may be a hashref of parameters.
+The only valid parameter currently is:
+
+* strict -- enables strict mode when true
+
+For typical cases, users will likely prefer to call {getopt} instead, which
+creates a new object and parses the command line with a single function call.
+
+== validate()
+
+  $opt->validate();
+  $opt->validate( \%arguments );
+
+Takes an optional argument hashref, validates that all requirements and
+prerequisites are met or throws an error.  Valid argument keys are:
+
+* {requires} -- an arrayref of options that must exist in the options
+object.
+
+This method returns the object for convenient chaining:
+
+  $opt = Getopt::Lucid->getopt(\@spec)->validate;
 
 == append_defaults()
 
@@ -1270,10 +1318,10 @@ defaults, recalculates the result of processing the command line with the
 revised defaults, and returns a hash with the resulting options.  Each
 key/value pair in the passed hash is added to the stored defaults.  For Switch
 and Param options, the value in the passed hash will overwrite any
-pre-existing value.  For Counter options, the value is added to any
-pre-existing value.  For List options, the value (or values, if the value is an
+preexisting value.  For Counter options, the value is added to any
+preexisting value.  For List options, the value (or values, if the value is an
 array reference) will be pushed onto the end of the list of existing values.
-For Keypair options, the keypairs will be added to the existing hash,
+For Keypair options, the key/value pairs will be added to the existing hash,
 overwriting existing key/value pairs (just like merging two hashes).  Keys
 which are not valid names from the options specification will be ignored.
 
@@ -1307,7 +1355,7 @@ Takes a hash or hash reference of new default values, modifies the stored
 defaults, recalculates the result of processing the command line with the
 revised defaults, and returns a hash with the resulting options.  Each
 key/value pair in the passed hash is added to the stored defaults, overwriting
-any pre-existing value.  Keys which are not valid names from the options
+any preexisting value.  Keys which are not valid names from the options
 specification will be ignored.
 
 == names()
@@ -1346,6 +1394,17 @@ specification, recalculates the result of processing the command line with the
 restored defaults, and returns a hash with the resulting options.  This
 undoes the effect of a {merge_defaults} or {add_defaults} call.
 
+= API CHANGES
+
+In 1.00, the following API changes have been made:
+
+* {new()} now takes an optional hashref of parameters as the last
+argument
+* The global {$STRICT} variable has been replaced with a per-object
+parameter {strict}
+* The {required} modifier has been removed and a new {validate} method
+has been added to facilitate late/custom checks of required options
+
 = SEE ALSO
 
 * [Config::Tiny]
@@ -1362,29 +1421,6 @@ Bugs can be submitted through the web interface at
 
 When submitting a bug or request, please include a test-file or a patch to an
 existing test-file that illustrates the bug or desired feature.
-
-= AUTHOR
-
-David A. Golden (DAGOLDEN)
-
-= COPYRIGHT AND LICENSE
-
-Copyright (c) 2005 - 2009 by David A. Golden
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-[http://www.apache.org/licenses/LICENSE-2.0]
-
-Files produced as output though the use of this software shall not be
-considered Derivative Works, but shall be considered the original work of the
-Licensor.
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
 
 =end wikidoc
 

@@ -19,7 +19,7 @@ sub why {
 # Test cases
 #--------------------------------------------------------------------------#
 
-my $spec = [ 
+my $spec = [
     Switch("--ver-bose"),
     Switch("--test"),
     Switch("-r"),
@@ -31,7 +31,7 @@ my $gl;
 try eval { $gl = Getopt::Lucid->new($spec) };
 catch my $err;
 is( $err, undef, "spec should validate" );
-SKIP: {    
+SKIP: {
     skip( "because spec did not validate", 1) if $err;
     my @expect = sort qw(ver-bose test r);
     my @got = sort $gl->names();

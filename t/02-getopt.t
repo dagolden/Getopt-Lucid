@@ -1,7 +1,7 @@
 use strict;
 use Test::More;
 use Data::Dumper;
-use Exception::Class::TryCatch;
+use Exception::Class::TryCatch 1.10;
 use Getopt::Lucid ':all';
 use Getopt::Lucid::Exception;
 use t::ErrorMessages;
@@ -436,22 +436,25 @@ BEGIN {
         label => "required options",
         spec  => [
             Counter("--verbose|-v"),
-            Param("--input|-i")->required,
+            Param("--input|-i")
         ],
         cases => [
             {
                 argv    => [ qw( -v ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _required("--input"),
+                required => ['input'],
                 desc    => "missing required option"
             },
             {
                 argv    => [ qw( --input 42 -vv ) ],
+                required => ['input'],
                 result  => { "verbose" => 2, "input" => 42 },
                 desc    => "required option present"
             },
             {
                 argv    => [ qw( --input info -v ) ],
+                required => ['input'],
                 result  => { "verbose" => 1, "input" => 'info' },
                 desc    => "required option param similar to option name"
             },
@@ -648,11 +651,12 @@ BEGIN {
     push @good_specs, {
         label => "validate w/ string alternation regex",
         spec  => [
-            Param( "mode|m", qr/test|live/ )->required
+            Param( "mode|m", qr/test|live/ ),
         ],
         cases => [
             {
                 argv    => [ qw( --mode test ) ],
+                required => ['mode'],
                 result  => {
                     "mode" => 'test',
                 },
@@ -660,6 +664,7 @@ BEGIN {
             },
             {
                 argv    => [ qw( --mode foo ) ],
+                required => ['mode'],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _param_invalid("mode","foo"),
                 desc    => "param mode not validating"
@@ -1015,7 +1020,9 @@ while ( $trial = shift @good_specs ) {
             my $gl = Getopt::Lucid->new($trial->{spec});
             @ARGV = @{$case->{argv}};
             my %opts;
-            try eval { %opts = $gl->getopt->options };
+            my $valid_args = $case->{required}  ? {requires => $case->{required}}
+                                                : {};
+            try eval { %opts = $gl->getopt->validate($valid_args)->options };
             catch my $err;
             if (defined $case->{exception}) { # expected
                 ok( $err && $err->isa( $case->{exception} ),
