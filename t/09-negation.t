@@ -132,7 +132,7 @@ BEGIN {
     push @good_specs, {
         label => "required/prereq",
         spec  => [
-            Switch("test")->required,
+            Switch("test"),
             Param("input")->needs("output"),
             Param("output"),
         ],
@@ -140,6 +140,7 @@ BEGIN {
             {
                 argv    => [ qw( --test --no-test ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
+                required => ['test'],
                 error_msg => _required("test"),
                 desc    => "missing requirement after negation"
             },
@@ -147,6 +148,7 @@ BEGIN {
                 argv    => [ qw( --test --input in.txt
                                  --output out.txt --no-output ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
+                required => ['test'],
                 error_msg => _prereq_missing("input","output",),
                 desc    => "missing prereq after negation"
             },
@@ -180,7 +182,9 @@ while ( $trial = shift @good_specs ) {
             my $gl = Getopt::Lucid->new($trial->{spec}, \@cmd_line);
             @cmd_line = @{$case->{argv}};
             my %opts;
-            try eval { %opts = $gl->getopt->options };
+            my $valid_args = $case->{required}  ? {requires => $case->{required}}
+                                                : {};
+            try eval { %opts = $gl->getopt->validate($valid_args)->options };
             catch my $err;
             if (defined $case->{exception}) { # expected
                 ok( $err && $err->isa( $case->{exception} ),

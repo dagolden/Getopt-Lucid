@@ -1,12 +1,11 @@
-package Getopt::Lucid::Exception;
 use 5.006;
 use strict;
 use warnings;
+package Getopt::Lucid::Exception;
+# ABSTRACT: Exception classes for Getopt::Lucid
+# VERSION
 
-our $VERSION = '0.19';
-$VERSION = eval $VERSION;
-
-use Exception::Class (
+use Exception::Class 1.23 (
     "Getopt::Lucid::Exception" => {
         description => "Unidentified exception",
     },
@@ -37,20 +36,5 @@ sub import {
     }
 }
 
-1; #this line is important and will help the module return a true value
-__END__
+1;
 
-# AUTHOR
-# David A Golden (DAGOLDEN)
-# dagolden@cpan.org
-# http://dagolden.com/
-#
-# COPYRIGHT
-#
-# Copyright (c) 2005 by David A Golden
-#
-# This program is free software; you can redistribute
-# it and/or modify it under the same terms as Perl itself.
-#
-# The full text of the license can be found in the
-# LICENSE file included with this module.

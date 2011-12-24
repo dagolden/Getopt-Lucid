@@ -65,7 +65,7 @@ my $config1 = {
 
 # package variables for easier looping by name later
 
-use vars qw( 
+use vars qw(
     $merge_default $merge_result
     $append_default $append_result
     $replace_default $replace_result
@@ -179,10 +179,10 @@ SKIP: {
                 : undef;
         }
         is_deeply( {$gl->defaults}, \%basic_default,
-            "basic default options returned correctly") or 
+            "basic default options returned correctly") or
             diag why( got => {$gl->options}, expected => \%basic_default);
         is_deeply( {$gl->options}, $expect,
-            "options with default from spec processed correctly") or 
+            "options with default from spec processed correctly") or
             diag why( got => {$gl->options}, expected => $expect);
 
         # Test things working correctly
@@ -197,14 +197,14 @@ SKIP: {
                     ? "hash version"
                     : "hashref version";
                 is_deeply( {$gl->defaults}, $$default,
-                    "$call updated defaults correctly ($msg)") or 
+                    "$call updated defaults correctly ($msg)") or
                     diag why( got => {$gl->defaults}, expected => $$default);
                 is_deeply( {$gl->options}, $$result,
-                    "$call refreshed options correctly ($msg)") or 
+                    "$call refreshed options correctly ($msg)") or
                     diag why( got => {$gl->options}, expected => $$result);
                 $gl->reset_defaults();
                 is_deeply( {$gl->options}, $expect,
-                    "options reset to spec correctly ($msg)") or 
+                    "options reset to spec correctly ($msg)") or
                     diag why( got => {$gl->options}, expected => $expect);
             }
         }
