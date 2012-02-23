@@ -226,13 +226,19 @@ BEGIN { *getopts = \&getopt }; # handy alias
 
 sub validate {
   my ($self, $arg) = @_;
-  throw_usage("Getopt::Lucid->validate() takes an optional hashref argument")
-    unless $arg && ref($arg) eq 'HASH';
+  throw_usage("Getopt::Lucid->validate() takes a hashref argument")
+    if $arg && ref($arg) ne 'HASH';
 
-  for my $p ( @{$arg->{requires}} ) {
-      throw_argv("Required option '$self->{spec}{$p}{canon}' not found")
-          if ( ! $self->{seen}{$p} );
+  if ( $arg && exists $arg->{requires} ) {
+    my $requires = $arg->{requires};
+    throw_usage("'validate' argument 'requires' must be an array reference")
+      if $requires && ref($requires) ne 'ARRAY';
+    for my $p ( @$requires ) {
+        throw_argv("Required option '$self->{spec}{$p}{canon}' not found")
+            if ( ! $self->{seen}{$p} );
+    }
   }
+
   _check_prereqs($self);
 
   return $self;
