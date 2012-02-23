@@ -24,7 +24,7 @@ my $VALID_NAME      = qr/$VALID_LONG|$VALID_SHORT|$VALID_BARE/;
 my $SHORT_BUNDLE    = qr/-[$VALID_STARTCHAR]{2,}/;
 my $NEGATIVE        = qr/(?:--)?no-/;
 
-my @valid_keys = qw( name type default nocase valid needs canon );
+my @valid_keys = qw( name type required required_or default nocase valid needs needs_or canon );
 my @valid_types = qw( switch counter parameter list keypair);
 
 sub Switch  {
@@ -64,6 +64,26 @@ sub valid {
     return $self;
 }
 
+sub required { my $self = shift; $self->{required} = 1; return $self };
+
+sub required_or { 
+    my $self = shift; 
+    my $chain = shift;
+
+    if ($self->{required}) {
+        Getopt::Lucid::throw_spec("'$self->{name}' already set as required");
+    }
+    elsif ($chain) {
+        $self->{required_or} = $chain; 
+    }
+    else {
+        Getopt::Lucid::throw_spec("Must define chain for: $self->{name}");
+    }
+
+    return $self 
+};
+
+
 sub default {
     my $self = shift;
     my $type = $self->{type};
@@ -90,6 +110,9 @@ sub default {
 sub anycase { my $self = shift; $self->{nocase}=1; return $self };
 
 sub needs { my $self = shift; $self->{needs}=[@_]; return $self };
+
+sub needs_or { my $self = shift; $self->{needs_or}=[@_]; return $self };
+
 
 package Getopt::Lucid;
 
@@ -373,16 +396,90 @@ sub _check_prereqs {
     my ($self) = @_;
     for my $key ( keys %{$self->{seen}} ) {
         next unless $self->{seen}{$key};
-        next unless exists $self->{spec}{$key}{needs};
-        for (@{$self->{spec}{$key}{needs}}) {
-            throw_argv("Option '$self->{spec}{$key}{canon}' ".
-                       "requires option '$self->{spec}{$_}{canon}'")
-                unless $self->{seen}{$_};
+
+        if ($self->{spec}{$key}{needs}) {
+            for (@{$self->{spec}{$key}{needs}}) {
+                throw_argv("Option '$self->{spec}{$key}{canon}' ".
+                           "requires option '$self->{spec}{$_}{canon}'")
+                    unless $self->{seen}{$_};
+            }
         }
+
+        if ($self->{spec}{$key}{needs_or}) {
+            my $find_one = 0;
+            my @not_found = ();
+            my @found = ();
+            for (@{$self->{spec}{$key}{needs_or}}) {
+                if ($self->{seen}{$_}) {
+                    $find_one++;
+                    push @found, $_;
+                }
+                else {
+                    push @not_found, $_;
+                }
+            }
+            if ($find_one == 0) {
+                throw_argv("Option '$self->{spec}{$key}{canon}' ".
+                           "requires one of: '--" . join("','--",@not_found) . "'")
+            }
+            elsif ($find_one > 1) {
+                throw_argv("Option '$self->{spec}{$key}{canon}' ".
+                           "only accetps one of: '--" . join("','--",@found) . "'") 
+            }
+        }
+
     }
 }
 
 #--------------------------------------------------------------------------#
+# _check_required()
+#--------------------------------------------------------------------------#
+
+sub _check_required {
+    my ($self) = @_;
+    my $option_chain = {};
+    for ( keys %{$self->{spec}} ) {
+        throw_argv("Required option '$self->{spec}{$_}{canon}' not found")
+            if ( $self->{spec}{$_}{required} && ! $self->{seen}{$_} );
+
+        if (my $chain = $self->{spec}{$_}{required_or}) {
+            push @{$option_chain->{$chain}}, $_;  
+        }
+    }
+
+    foreach my $chain_name ( keys %{$option_chain} ) {
+        if (@{$option_chain->{$chain_name}} == 1) {
+            throw_spec("Chain '$chain_name' only has 1 spec");
+        }
+        elsif (@{$option_chain->{$chain_name}} > 1) {
+            my @found = ();
+            my @not_found = ();
+            my $find_one = 0;
+            for (@{$option_chain->{$chain_name}}) {
+                if ( $self->{seen}{$_} ) {
+                    push @found, $_;
+                    $find_one++;
+                } 
+                else {
+                    push @not_found, $_;
+                }
+            }
+
+            if ($find_one == 0) {
+                throw_argv("Must define one of: '--" . join("','--",@not_found) . "'")
+            }
+            elsif ($find_one > 1) {
+                throw_argv("Define only one of: '--" . join("','--",@found) . "'")
+            }
+
+        }
+    }
+    
+}
+
+#--------------------------------------------------------------------------#
+=======
+>>>>>>> master
 # _counter()
 #--------------------------------------------------------------------------#
 
@@ -422,6 +519,10 @@ sub _keypair {
     }
     else {
         my $value = defined $val ? $val : shift @{$self->{target}};
+        if (! defined $val && ! defined $value) {
+            throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value");
+        }
+
         throw_argv("Badly formed keypair for '$self->{spec}{$arg}{canon}'")
             unless $value =~ /[^=]+=.+/;
         ($key, $data) = ( $value =~ /^([^=]*)=(.*)$/ ) ;
@@ -444,7 +545,13 @@ sub _list {
     }
     else {
         $value = defined $val ? $val : shift @{$self->{target}};
-        $value =~ s/^$NEGATIVE(.*)$/$1/ if ! defined $val;
+        if (! defined $val) {
+            if (! defined $value) {
+                throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value");
+            }
+            $value =~ s/^$NEGATIVE(.*)$/$1/;
+        }
+
         throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
             if ! defined $val and _find_arg($self, $value);
         throw_argv("Invalid list option $self->{spec}{$arg}{canon} = $value")
@@ -466,7 +573,12 @@ sub _parameter {
     }
     else {
         $value = defined $val ? $val : shift @{$self->{target}};
-        $value =~ s/^$NEGATIVE(.*)$/$1/ if ! defined $val;
+        if (! defined $val) {
+            if (! defined $value) {
+                throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value");
+            }
+            $value =~ s/^$NEGATIVE(.*)$/$1/;
+        }
         throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
             if ! defined $val and _find_arg($self, $value);
         throw_argv("Invalid parameter $self->{spec}{$arg}{canon} = $value")
@@ -652,15 +764,23 @@ sub _unbundle {
 sub _validate_prereqs {
     my ($self) = @_;
     for my $key ( keys %{$self->{spec}} ) {
-        next unless exists $self->{spec}{$key}{needs};
-        my $needs = $self->{spec}{$key}{needs};
-        my @prereq = ref($needs) eq 'ARRAY' ? @$needs : ( $needs );
-        for (@prereq) {
-            throw_spec("Prerequisite '$_' for '$self->{spec}{$key}{canon}' is not recognized")
-                unless _find_arg($self,$_);
-            $_ = _find_arg($self,$_);
+        my @key_needs = ();
+        push @key_needs, 'needs' if $self->{spec}{$key}{needs};
+        push @key_needs, 'needs_or' if $self->{spec}{$key}{needs_or};
+        foreach my $need_type (@key_needs) {
+            my $needs = $self->{spec}{$key}{$need_type};
+            my @prereq = ref($needs) eq 'ARRAY' ? @$needs : ( $needs );
+            if ($need_type eq 'needs_or' && @prereq < 2) {
+                throw_spec("needs_or for '$self->{spec}{$key}{canon}' requires 2 or more prerequisites");
+            }
+
+            for (@prereq) {
+                throw_spec("Prerequisite '$_' for '$self->{spec}{$key}{canon}' is not recognized")
+                    unless _find_arg($self,$_);
+                $_ = _find_arg($self,$_);
+            }
+            $self->{spec}{$key}{$need_type} = \@prereq;
         }
-        $self->{spec}{$key}{needs} = \@prereq;
     }
 }
 
@@ -985,6 +1105,17 @@ line or else an exception is thrown.  No argument is needed.
     Param("input")->required(),
   );
 
+=== required_or(CHAIN)
+
+Indicates that one and only one of the options in this CHAIN 
+~must~ appear on the command line or else an exception is thrown.
+
+  @spec = (
+    Param("userid")->required('user'),
+    Param("username")->required_or('user')
+  );
+
+
 === needs()
 
 Takes as an argument a list of option names or aliases of
@@ -996,6 +1127,20 @@ exception is thrown.
     Param("input")->needs("output"),
     Param("output),
   );
+
+=== needs_or()
+
+Takes as an argument a list of option names or aliases of
+dependencies.  One and only one of the options can appear on the command line. 
+If 0 or more than one of the options appear on the command line an
+exception is thrown.
+
+  @spec = (
+    Param("input")->needs_or("userid", "username"),
+    Param("userid"),
+    Param("username"),
+  );
+
 
 === anycase()
 

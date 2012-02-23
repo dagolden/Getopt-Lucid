@@ -23,15 +23,42 @@ sub _name_not_unique    {sprintf("'%s' is not unique",@_)}
 sub _name_conflicts     {sprintf("'%s' conflicts with other options",@_)}
 sub _key_invalid        {sprintf("'%s' is not a valid option specification key",@_)}
 sub _type_invalid       {sprintf("'%s' is not a valid option type",@_)}
-sub _prereq_missing     {sprintf("Option '%s' requires option '%s'",@_)}
-sub _unknown_prereq     {sprintf("Prerequisite '%s' for '%s' is not recognized",@_)}
+sub _prereq_missing     {sprintf("Option '%s' requires option '%s'",@_)} 
+sub _unknown_prereq     {sprintf("Prerequisite '%s' for '%s' is not recognized",@_)} 
 sub _invalid_list       {sprintf("Option '%s' in %s must be scalar or array reference",@_)}
 sub _invalid_keypair    {sprintf("Option '%s' in %s must be scalar or hash reference",@_)}
 sub _invalid_splat_defaults {sprintf("Argument to %s must be a hash or hash reference",@_)}
+sub _no_value           {sprintf("Option '%s' requires a value",@_)}
+
+
+sub _or_prereq_missing {
+    my $txt = sprintf("Option '%s' requires one of: ", shift);
+    $txt .= "'" . join("','",@_) . "'";
+    return $txt;
+}
+
+sub _or_prereq_multiple {
+    my $txt = sprintf("Option '--list-users' only accetps one of: ", shift);
+    $txt .= "'" . join("','",@_) . "'";
+    return $txt;
+}
+
+sub _required_or {
+    my $txt = "Must define one of: ";
+    $txt .= "'" . join("','",@_) . "'";
+    return $txt;
+}
+
+sub _required_or_multiple {
+    my $txt = "Define only one of: ";
+    $txt .= "'" . join("','",@_) . "'";
+    return $txt;
+}
 
 # keep this last;
 for (keys %t::ErrorMessages::) {
     push @t::ErrorMessages::EXPORT, $_ if $_ =~ "^_";
 }
 
-1;
+1; 
+

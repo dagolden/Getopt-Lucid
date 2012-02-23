@@ -462,6 +462,41 @@ BEGIN {
     };
 
     push @good_specs, {
+        label => "required_or options",
+        spec  => [
+            Counter("--verbose|-v"),
+            Param("--username|-n")->required_or('user'),
+            Param("--userid|-u")->required_or('user'),
+        ],
+        cases => [
+            {
+                argv    => [ qw( -v ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _required_or("--userid", "--username"),
+                desc    => "missing required option"
+            },
+            {
+                argv    => [ qw( --userid 42 -vv ) ],
+                result  => { "verbose" => 2, "userid" => 42, username=>undef },
+                desc    => "required option present"
+            },
+            {
+                argv    => [ qw( --username foo -v ) ],
+                result  => { "verbose" => 1, "username" => 'foo', userid=>undef },
+                desc    => "required option param similar to option name"
+            },
+            {
+                argv    => [ qw( --username foo -v --userid 42) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _required_or_multiple("--userid", "--username"),
+                desc    => "too man required_or options specified"
+            },
+
+        ]
+    };
+
+
+    push @good_specs, {
         label => "default values",
         spec  => [
             Switch("--quick")->default(1),
@@ -809,6 +844,53 @@ BEGIN {
     };
 
     push @good_specs, {
+        label => "or dependencies",
+        spec  => [
+            Switch("--list-users")->needs_or(qw( --all --userid --username )),
+            Switch("--all|-a"),
+            Param("--userid|-u"),
+            Param("--username|-n"),
+        ],
+        cases => [
+            {
+                argv    => [ qw( ) ],
+                result  => { "list-users" => 0, "all" => 0, userid => undef, username => undef },
+                desc    => "no options"
+            },
+            {
+                argv    => [ qw( --list-users ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _or_prereq_missing("--list-users", "--all", "--userid", "--username"),
+                desc    => "no prereq defined"
+            },
+            {
+                argv    => [ qw(--list-users --userid 5 --username foo ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _or_prereq_multiple("--list-users", "--userid", "--username"),
+                desc    => "too many prereqs defined"
+            },
+            {
+                argv    => [ qw( --list-users --all ) ],
+                result  => { "list-users" => 1, "all" => 1, userid => undef, username => undef },
+                desc    => "prereq present"
+            },
+            {
+                argv    => [ qw( --list-users --userid 5 ) ],
+                result  => { "list-users" => 1, "all" => 0, "userid" => 5, "username" => undef },
+                desc    => "prereq present"
+            },
+            {
+                argv    => [ qw( --list-users --username foo ) ],
+                result  => { "list-users" => 1, "all" => 0, "userid" => undef, "username" => 'foo' },
+                desc    => "prereq present"
+            },
+
+
+        ]
+    };
+
+
+    push @good_specs, {
         label => "single dependency with alias",
         spec  => [
             Param("--question"),
@@ -854,6 +936,37 @@ BEGIN {
             },
         ]
     };
+
+    push @good_specs, {
+        label => "Null Param,List,Keypair",
+        spec  => [
+            Param("--param"),
+            List("--list"),
+            Keypair("--key-pair"),
+        ],
+        cases => [
+            {
+                argv    => [ qw( --param ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _no_value("--param"),
+                desc    => "parameter with no value",
+            },
+            {
+                argv    => [ qw( --list ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _no_value("--list"),
+                desc    => "list with no value",
+            },
+            {
+                argv    => [ qw( --key-pair ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _no_value("--key-pair"),
+                desc    => "keypair with no value",
+            },
+
+        ]
+    };
+
 
     # Bad specification testing
 
@@ -959,6 +1072,7 @@ BEGIN {
         error_msg => _unknown_prereq("--wager","--guess"),
         label => "unknown prereq",
     };
+    
 
 } #BEGIN
 
