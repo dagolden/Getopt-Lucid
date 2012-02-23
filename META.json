@@ -4,7 +4,7 @@
       "David Golden <dagolden@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.300003, CPAN::Meta::Converter version 2.112580",
+   "generated_by" : "Dist::Zilla version 4.300009, CPAN::Meta::Converter version 2.120351",
    "license" : [
       "apache_2_0"
    ],
@@ -32,23 +32,23 @@
       },
       "runtime" : {
          "requires" : {
-            "Carp" : 0,
+            "Carp" : "0",
             "Exception::Class" : "1.23",
-            "Exporter" : 0,
+            "Exporter" : "0",
             "Storable" : "2.16",
             "perl" : "5.006",
-            "strict" : 0,
-            "warnings" : 0
+            "strict" : "0",
+            "warnings" : "0"
          }
       },
       "test" : {
          "requires" : {
-            "Data::Dumper" : 0,
+            "Data::Dumper" : "0",
             "Exception::Class::TryCatch" : "1.10",
-            "File::Find" : 0,
-            "File::Temp" : 0,
+            "File::Find" : "0",
+            "File::Temp" : "0",
             "Test::More" : "0.62",
-            "vars" : 0
+            "vars" : "0"
          }
       }
    },
