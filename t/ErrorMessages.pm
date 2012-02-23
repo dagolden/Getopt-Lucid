@@ -28,6 +28,8 @@ sub _unknown_prereq     {sprintf("Prerequisite '%s' for '%s' is not recognized",
 sub _invalid_list       {sprintf("Option '%s' in %s must be scalar or array reference",@_)}
 sub _invalid_keypair    {sprintf("Option '%s' in %s must be scalar or hash reference",@_)}
 sub _invalid_splat_defaults {sprintf("Argument to %s must be a hash or hash reference",@_)}
+sub _no_value           {sprintf("Option '%s' requires a value",@_)}
+
 
 # keep this last;
 for (keys %t::ErrorMessages::) {

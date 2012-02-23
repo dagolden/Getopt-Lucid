@@ -422,6 +422,10 @@ sub _keypair {
     }
     else {
         my $value = defined $val ? $val : shift @{$self->{target}};
+        if (! defined $val && ! defined $value) {
+            throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value");
+        }
+
         throw_argv("Badly formed keypair for '$self->{spec}{$arg}{canon}'")
             unless $value =~ /[^=]+=.+/;
         ($key, $data) = ( $value =~ /^([^=]*)=(.*)$/ ) ;
@@ -444,7 +448,13 @@ sub _list {
     }
     else {
         $value = defined $val ? $val : shift @{$self->{target}};
-        $value =~ s/^$NEGATIVE(.*)$/$1/ if ! defined $val;
+        if (! defined $val) {
+            if (! defined $value) {
+                throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value");
+            }
+            $value =~ s/^$NEGATIVE(.*)$/$1/;
+        }
+
         throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
             if ! defined $val and _find_arg($self, $value);
         throw_argv("Invalid list option $self->{spec}{$arg}{canon} = $value")
@@ -466,7 +476,12 @@ sub _parameter {
     }
     else {
         $value = defined $val ? $val : shift @{$self->{target}};
-        $value =~ s/^$NEGATIVE(.*)$/$1/ if ! defined $val;
+        if (! defined $val) {
+            if (! defined $value) {
+                throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value");
+            }
+            $value =~ s/^$NEGATIVE(.*)$/$1/;
+        }
         throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
             if ! defined $val and _find_arg($self, $value);
         throw_argv("Invalid parameter $self->{spec}{$arg}{canon} = $value")
