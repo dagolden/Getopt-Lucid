@@ -12,10 +12,12 @@ BEGIN {
         Getopt::Lucid::Exception
         Getopt::Lucid::Exception::Spec
         Getopt::Lucid::Exception::ARGV
+        Getopt::Lucid::Exception::Usage
     );
     @throw_aliases = qw(
         throw_spec
         throw_argv
+        throw_usage
     );
 }
 
@@ -34,7 +36,7 @@ use Getopt::Lucid ':all';
 
 for my $e ( @exceptions ) {
     eval { $e->throw };
-    ok ($@->isa($e), "throwing $e");
+    isa_ok ($@, $e,);
 }
 
 can_ok( "Getopt::Lucid$_", @throw_aliases ) for ( "::Exception", "" );

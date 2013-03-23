@@ -34,7 +34,7 @@ my ($gl, $err);
 
 eval { $gl = Getopt::Lucid->new() };
 catch $err;
-is( $err, "Getopt::Lucid->new() requires an option specification array reference",
+is( $err, "Getopt::Lucid->new() requires an option specification array reference\n",
     "new without spec throws exception");
 
 eval { $gl = Getopt::Lucid->new( $spec ) };
@@ -45,7 +45,7 @@ isa_ok( $gl, "Getopt::Lucid" );
 
 eval { $gl = Getopt::Lucid->getopt() };
 catch $err;
-is( $err, "Getopt::Lucid->getopt() requires an option specification array reference",
+is( $err, "Getopt::Lucid->getopt() requires an option specification array reference\n",
     "getopt (as class method) without spec throws exception");
 
 eval { $gl = Getopt::Lucid->getopt( $spec ) };

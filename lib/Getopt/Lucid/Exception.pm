@@ -5,6 +5,10 @@ package Getopt::Lucid::Exception;
 # ABSTRACT: Exception classes for Getopt::Lucid
 # VERSION
 
+use Exporter;
+our @ISA = qw/Exporter Exception::Class::Base/;
+our @EXPORT = qw( throw_spec throw_argv throw_usage);
+
 use Exception::Class 1.23 (
     "Getopt::Lucid::Exception" => {
         description => "Unidentified exception",
@@ -12,28 +16,28 @@ use Exception::Class 1.23 (
 
     "Getopt::Lucid::Exception::Spec" => {
         description => "Invalid specification",
-        alias => "throw_spec"
     },
 
     "Getopt::Lucid::Exception::ARGV" => {
         description => "Invalid argument on command line",
-        alias => "throw_argv"
     },
 
     "Getopt::Lucid::Exception::Usage" => {
         description => "Invalid usage",
-        alias => "throw_usage"
     },
 
 );
 
-sub import {
-    my $caller = caller(0);
-    {
-        no strict 'refs';
-        *{$caller."::$_"} = *{__PACKAGE__."::$_"}
-            for qw( throw_spec throw_argv throw_usage);
-    }
+sub throw_spec {
+    Getopt::Lucid::Exception::Spec->throw("$_[0]\n");
+}
+
+sub throw_argv {
+    Getopt::Lucid::Exception::ARGV->throw("$_[0]\n");
+}
+
+sub throw_usage {
+    Getopt::Lucid::Exception::Usage->throw("$_[0]\n");
 }
 
 1;
