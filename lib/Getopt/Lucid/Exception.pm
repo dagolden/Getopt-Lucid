@@ -42,3 +42,8 @@ sub throw_usage {
 
 1;
 
+=for Pod::Coverage
+description
+throw_argv
+throw_spec
+throw_usage
