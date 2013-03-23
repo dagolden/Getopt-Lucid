@@ -6,7 +6,7 @@ Getopt::Lucid - Clear, readable syntax for command line processing
 
 =head1 VERSION
 
-version 1.01
+version 1.02
 
 =head1 SYNOPSIS
 
@@ -768,14 +768,14 @@ L<http://rt.cpan.org/Dist/Display.html?Queue=Getopt-Lucid>
 When submitting a bug or request, please include a test-file or a patch to an
 existing test-file that illustrates the bug or desired feature.
 
-=for :stopwords cpan testmatrix url annocpan anno bugtracker rt cpants kwalitee diff irc mailto metadata placeholders
+=for :stopwords cpan testmatrix url annocpan anno bugtracker rt cpants kwalitee diff irc mailto metadata placeholders metacpan
 
 =head1 SUPPORT
 
 =head2 Bugs / Feature Requests
 
 Please report any bugs or feature requests through the issue tracker
-at L<http://rt.cpan.org/Public/Dist/Display.html?Name=Getopt-Lucid>.
+at L<https://rt.cpan.org/Public/Dist/Display.html?Name=Getopt-Lucid>.
 You will be notified automatically of any progress on your issue.
 
 =head2 Source Code
@@ -785,15 +785,19 @@ public review and contribution under the terms of the license.
 
 L<https://github.com/dagolden/getopt-lucid>
 
-  git clone https://github.com/dagolden/getopt-lucid.git
+  git clone git://github.com/dagolden/getopt-lucid.git
 
 =head1 AUTHOR
 
 David Golden <dagolden@cpan.org>
 
+=head1 CONTRIBUTOR
+
+Robert Bohne <rbo@cpan.org>
+
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2012 by David Golden.
+This software is Copyright (c) 2013 by David Golden.
 
 This is free software, licensed under:
 

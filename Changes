@@ -2,6 +2,8 @@ Revision history for Perl module Getopt::Lucid
 
 {{$NEXT}}
 
+    - added newlines to error messages
+
 1.01      2012-02-23 18:07:19 EST5EDT
 
     - fixed validation() to make hashref argument actually optional like
