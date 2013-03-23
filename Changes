@@ -2,6 +2,8 @@ Revision history for Perl module Getopt::Lucid
 
 {{$NEXT}}
 
+1.02      2013-03-22 23:44:15 America/New_York
+
     - added newlines to error messages
 
 1.01      2012-02-23 18:07:19 EST5EDT
