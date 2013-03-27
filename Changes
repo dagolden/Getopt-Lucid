@@ -3,7 +3,9 @@ Revision history for Perl module Getopt::Lucid
 {{$NEXT}}
 
     - added error message for missing values for other
-      option types
+      option types as well
+
+    - fixed some documentation typos
 
 1.03      2013-03-27 10:23:55 America/New_York
 
