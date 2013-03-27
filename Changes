@@ -7,6 +7,9 @@ Revision history for Perl module Getopt::Lucid
 
     - fixed some documentation typos
 
+    - removed documentation of 'required' modifier, which was
+      actually removed in 1.00
+
 1.03      2013-03-27 10:23:55 America/New_York
 
     - added error message for missing parameter value

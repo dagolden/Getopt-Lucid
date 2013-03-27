@@ -991,15 +991,6 @@ array or hash, respectively.
     Keypair("define")->default( arch => "i386" ),
   );
 
-=== required()
-
-Indicates that the option ~must~ appear on the command
-line or else an exception is thrown.  No argument is needed.
-
-  @spec = (
-    Param("input")->required(),
-  );
-
 === needs()
 
 Takes as an argument a list of option names or aliases of
