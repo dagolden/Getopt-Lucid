@@ -241,6 +241,12 @@ BEGIN {
                 desc    => "repeated param value"
             },
             {
+                argv    => [ qw( --input ) ],
+                exception   => "Getopt::Lucid::Exception::ARGV",
+                error_msg => _param_missing("--input"),
+                desc    => "missing param value"
+            },
+            {
                 argv    => [ qw( -i -v ) ],
                 exception   => "Getopt::Lucid::Exception::ARGV",
                 error_msg => _param_ambiguous("--input","-v"),
