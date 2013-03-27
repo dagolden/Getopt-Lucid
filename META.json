@@ -66,15 +66,15 @@
    "provides" : {
       "Getopt::Lucid" : {
          "file" : "lib/Getopt/Lucid.pm",
-         "version" : "1.02"
+         "version" : "1.03"
       },
       "Getopt::Lucid::Exception" : {
          "file" : "lib/Getopt/Lucid/Exception.pm",
-         "version" : "1.02"
+         "version" : "1.03"
       },
       "Getopt::Lucid::Spec" : {
          "file" : "lib/Getopt/Lucid.pm",
-         "version" : "1.02"
+         "version" : "1.03"
       }
    },
    "release_status" : "stable",
@@ -90,7 +90,7 @@
          "web" : "https://github.com/dagolden/getopt-lucid"
       }
    },
-   "version" : "1.02",
+   "version" : "1.03",
    "x_contributors" : [
       "Robert Bohne <rbo@cpan.org>"
    ]
