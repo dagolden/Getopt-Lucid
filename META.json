@@ -66,15 +66,15 @@
    "provides" : {
       "Getopt::Lucid" : {
          "file" : "lib/Getopt/Lucid.pm",
-         "version" : "1.03"
+         "version" : "1.04"
       },
       "Getopt::Lucid::Exception" : {
          "file" : "lib/Getopt/Lucid/Exception.pm",
-         "version" : "1.03"
+         "version" : "1.04"
       },
       "Getopt::Lucid::Spec" : {
          "file" : "lib/Getopt/Lucid.pm",
-         "version" : "1.03"
+         "version" : "1.04"
       }
    },
    "release_status" : "stable",
@@ -90,8 +90,10 @@
          "web" : "https://github.com/dagolden/getopt-lucid"
       }
    },
-   "version" : "1.03",
+   "version" : "1.04",
    "x_contributors" : [
+      "Kevin McGrath <kmcgrath@cpan.org>",
+      "Nick Patch <patch@cpan.org>",
       "Robert Bohne <rbo@cpan.org>"
    ]
 }
