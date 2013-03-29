@@ -2,6 +2,8 @@ Revision history for Perl module Getopt::Lucid
 
 {{$NEXT}}
 
+1.05      2013-03-28 20:01:43 America/New_York
+
     - work around parsing bug in perl 5.12
 
 1.04      2013-03-27 11:58:02 America/New_York
