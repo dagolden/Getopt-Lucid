@@ -211,7 +211,7 @@ sub getopt {
                               throw_usage("can't handle type '$_'");
             }
         } else {
-            throw_argv("Invalid argument: $orig")
+            throw_argv("Invalid argument: $orig", usage => $self->{usage})
                 if $orig =~ /^-./; # invalid if looks like it could be an arg;
             push @passthrough, $orig;
         }
@@ -239,8 +239,9 @@ sub validate {
     for my $p ( @$requires ) {
         throw_spec("Requiring an unspecified option ('$p') in validate()")
             unless exists $self->{spec}{$p};
-        throw_argv("Required option '$self->{spec}{$p}{canon}' not found")
-            if ( ! $self->{seen}{$p} );
+        throw_argv( "Required option '$self->{spec}{$p}{canon}' not found",
+            usage => $self->{usage} )
+          if ( !$self->{seen}{$p} );
     }
   }
 
@@ -371,6 +372,72 @@ sub reset_defaults {
 }
 
 #--------------------------------------------------------------------------#
+# _build_usage()
+#--------------------------------------------------------------------------#
+
+sub _build_usage {
+    my ($self) = @_;
+    my @short_opts;
+    my @doc;
+    for my $opt ( @{ $self->{raw_spec} } ) {
+        my $names = [ split /\|/, $opt->{name} ];
+        push @doc, [
+            _build_usage_left_column( $names, \@short_opts ),
+            _build_usage_right_column( $opt->{doc}, $opt->{default}, $opt->{type} ),
+        ];
+    }
+
+    # Can't use List::Util::max without a new dependency because of "use 5.006"
+    my $max_width = 3 + do {
+        my $m = -1;
+        do { $a = length $_->[0]; $m = $a if $m < $a } for @doc;
+        $m;
+    };
+
+    local $" = '';
+    $self->{usage} = "Usage: $0 [-@short_opts] [long options] [arguments]\n";
+    $self->{usage} .= sprintf "\t%-${max_width}s %s\n", @$_ for @doc;
+}
+
+sub _build_usage_left_column {
+    my ($names, $all_short_opts) = @_;
+    my @sorted_names = sort { length $a <=> length $b } @$names;
+
+    my @short_opts = grep { length == 1 } @sorted_names;
+    my @long_opts  = grep { length > 1 } @sorted_names;
+
+    push @$all_short_opts, @short_opts;
+
+    my $group = sub {
+        my $list = shift;
+        '-' . ( @$list == 1 ? $list->[0] : '[' . join( '|', @$list ) . ']' );
+    };
+    my $prepare = sub {
+        my $list = shift;
+        return ( length $list->[0] > 1 ? '-' : '' ) . $group->($list) if @$list;
+        return;
+    };
+
+    return join ', ' => map { $prepare->($_) } \@short_opts, \@long_opts;
+}
+
+sub _build_usage_right_column {
+    my ( $doc, $default, $type ) = @_;
+    my $str = defined $doc ? $doc : '';
+    return $str unless defined $default;
+    my $q = sub { map { /^[A-Za-z0-9_-]*$/ ? $_ : qq{"$_"} } @_ }; # quote
+    for ($type) {
+        $str .= ' (default: ' . (
+            /list/ ? join( ', ' => $q->(@$default) ) :
+            /keypair/ ? (ref $default ne 'HASH' && next) || join ', ' =>
+                sort map { join( '=', $q->(each %$default) ) } 1 .. keys %$default :
+            $q->($_)
+        ) . ')';
+    }
+    return $str;
+}
+
+#--------------------------------------------------------------------------#
 # _check_prereqs()
 #--------------------------------------------------------------------------#
 
@@ -381,7 +448,8 @@ sub _check_prereqs {
         next unless exists $self->{spec}{$key}{needs};
         for (@{$self->{spec}{$key}{needs}}) {
             throw_argv("Option '$self->{spec}{$key}{canon}' ".
-                       "requires option '$self->{spec}{$_}{canon}'")
+                       "requires option '$self->{spec}{$_}{canon}'",
+                       usage => $self->{usage})
                 unless $self->{seen}{$_};
         }
     }
@@ -393,7 +461,8 @@ sub _check_prereqs {
 
 sub _counter {
     my ($self, $arg, $val, $neg) = @_;
-    throw_argv("Counter option can't take a value: $self->{spec}{$arg}{canon}=$val")
+    throw_argv("Counter option can't take a value: $self->{spec}{$arg}{canon}=$val",
+        usage => $self->{usage})
         if defined $val;
     push @{$self->{parsed}}, [ $arg, 1, $neg ];
 }
@@ -428,13 +497,16 @@ sub _keypair {
     else {
         my $value = defined $val ? $val : shift @{$self->{target}};
         if (! defined $val && ! defined $value) {
-            throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value");
+            throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value",
+                       usage => $self->{usage});
         }
 
-        throw_argv("Badly formed keypair for '$self->{spec}{$arg}{canon}'")
+        throw_argv("Badly formed keypair for '$self->{spec}{$arg}{canon}'",
+                   usage => $self->{usage})
             unless $value =~ /[^=]+=.+/;
         ($key, $data) = ( $value =~ /^([^=]*)=(.*)$/ ) ;
-        throw_argv("Invalid keypair '$self->{spec}{$arg}{canon}': $key => $data")
+        throw_argv("Invalid keypair '$self->{spec}{$arg}{canon}': $key => $data",
+                   usage => $self->{usage})
             unless _validate_value($self, { $key => $data },
                                $self->{spec}{$arg}{valid});
     }
@@ -455,14 +527,17 @@ sub _list {
         $value = defined $val ? $val : shift @{$self->{target}};
         if (! defined $val) {
             if (! defined $value) {
-                throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value");
+                throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value",
+                           usage => $self->{usage});
             }
             $value =~ s/^$NEGATIVE(.*)$/$1/;
         }
 
-        throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
+        throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value",
+                   usage => $self->{usage})
             if ! defined $val and _find_arg($self, $value);
-        throw_argv("Invalid list option $self->{spec}{$arg}{canon} = $value")
+        throw_argv("Invalid list option $self->{spec}{$arg}{canon} = $value",
+                   usage => $self->{usage})
             unless _validate_value($self, $value, $self->{spec}{$arg}{valid});
     }
     push @{$self->{parsed}}, [ $arg, $value, $neg ];
@@ -476,20 +551,24 @@ sub _parameter {
     my ($self, $arg, $val, $neg) = @_;
     my $value;
     if ($neg) {
-        throw_argv("Negated parameter option can't take a value: $self->{spec}{$arg}{canon}=$val")
+        throw_argv("Negated parameter option can't take a value: $self->{spec}{$arg}{canon}=$val",
+                   usage => $self->{usage})
             if defined $val;
     }
     else {
         $value = defined $val ? $val : shift @{$self->{target}};
         if (! defined $val) {
             if (! defined $value) {
-                throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value");
+                throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value",
+                           usage => $self->{usage});
             }
             $value =~ s/^$NEGATIVE(.*)$/$1/;
         }
-        throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
+        throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value",
+                   usage => $self->{usage})
             if ! defined $val and _find_arg($self, $value);
-        throw_argv("Invalid parameter $self->{spec}{$arg}{canon} = $value")
+        throw_argv("Invalid parameter $self->{spec}{$arg}{canon} = $value",
+                   usage => $self->{usage})
             unless _validate_value($self, $value, $self->{spec}{$arg}{valid});
     }
     push @{$self->{parsed}}, [ $arg, $value, $neg ];
@@ -515,6 +594,7 @@ sub _parse_spec {
         $self->{spec}{$names[0]} = $opt;
         ($self->{strip}{$names[0]} = $names[0]) =~ s/^-+//;
     }
+    _build_usage($self);
     _validate_prereqs($self);
 }
 
@@ -638,10 +718,12 @@ sub _split_equals {
 
 sub _switch {
     my ($self, $arg, $val, $neg) = @_;
-    throw_argv("Switch can't take a value: $self->{spec}{$arg}{canon}=$val")
+    throw_argv("Switch can't take a value: $self->{spec}{$arg}{canon}=$val",
+               usage => $self->{usage})
         if defined $val;
     if (! $neg ) {
-        throw_argv("Switch used twice: $self->{spec}{$arg}{canon}")
+        throw_argv("Switch used twice: $self->{spec}{$arg}{canon}",
+                   usage => $self->{usage})
             if $self->{seen}{$arg} > 1;
     }
     push @{$self->{parsed}}, [ $arg, 1, $neg ];
@@ -1018,6 +1100,17 @@ argument is needed.
     Switch("help|h")->anycase(),    # "Help", "HELP", etc.
   );
 
+=== doc()
+
+Sets the documentation string for an option.
+
+    @spec = (
+      Param("output")->doc("write output to the specified file"),
+    );
+
+This string shows up in the "usage" Getopt::Lucid attaches to the exception
+thrown when the command-line is invalid.
+
 == Validation
 
 Validation happens in two stages.  First, individual parameters may have
@@ -1234,13 +1327,16 @@ contains incorrect or invalid data
 processed and fails to pass specified validation, requirements, or is
 otherwise determined to be invalid
 
-These exception may be caught using an {eval} block and allow the calling
+These exceptions may be caught using an {eval} block and allow the calling
 program to respond differently to each class of exception.
+
+{Getopt::Lucid::Exception::ARGV} comes with an additional {usage} field you
+can use to display a "usage" made out of your option specification.
 
   my $opt;
   eval { $opt = Getopt::Lucid->getopt( \@spec ) };
   if ($@) {
-    print "$@\n" && print_usage() && exit 1
+    print "$@\n" && print $@->usage and exit 1
       if ref $@ eq 'Getopt::Lucid::Exception::ARGV';
     ref $@ ? $@->rethrow : die $@;
   }
