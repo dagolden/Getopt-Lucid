@@ -210,7 +210,7 @@ sub getopt {
                               throw_usage("can't handle type '$_'");
             }
         } else {
-            throw_argv("Invalid argument: $orig")
+            throw_argv("Invalid argument: $orig", usage => $self->{usage})
                 if $orig =~ /^-./; # invalid if looks like it could be an arg;
             push @passthrough, $orig;
         }
@@ -236,7 +236,8 @@ sub validate {
     throw_usage("'validate' argument 'requires' must be an array reference")
       if $requires && ref($requires) ne 'ARRAY';
     for my $p ( @$requires ) {
-        throw_argv("Required option '$self->{spec}{$p}{canon}' not found")
+        throw_argv("Required option '$self->{spec}{$p}{canon}' not found",
+                   usage => $self->{usage})
             if ( ! $self->{seen}{$p} );
     }
   }
@@ -429,7 +430,8 @@ sub _check_prereqs {
         next unless exists $self->{spec}{$key}{needs};
         for (@{$self->{spec}{$key}{needs}}) {
             throw_argv("Option '$self->{spec}{$key}{canon}' ".
-                       "requires option '$self->{spec}{$_}{canon}'")
+                       "requires option '$self->{spec}{$_}{canon}'",
+                       usage => $self->{usage})
                 unless $self->{seen}{$_};
         }
     }
@@ -441,7 +443,8 @@ sub _check_prereqs {
 
 sub _counter {
     my ($self, $arg, $val, $neg) = @_;
-    throw_argv("Counter option can't take a value: $self->{spec}{$arg}{canon}=$val")
+    throw_argv("Counter option can't take a value: $self->{spec}{$arg}{canon}=$val",
+        usage => $self->{usage})
         if defined $val;
     push @{$self->{parsed}}, [ $arg, 1, $neg ];
 }
@@ -476,13 +479,16 @@ sub _keypair {
     else {
         my $value = defined $val ? $val : shift @{$self->{target}};
         if (! defined $val && ! defined $value) {
-            throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value");
+            throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value",
+                       usage => $self->{usage});
         }
 
-        throw_argv("Badly formed keypair for '$self->{spec}{$arg}{canon}'")
+        throw_argv("Badly formed keypair for '$self->{spec}{$arg}{canon}'",
+                   usage => $self->{usage})
             unless $value =~ /[^=]+=.+/;
         ($key, $data) = ( $value =~ /^([^=]*)=(.*)$/ ) ;
-        throw_argv("Invalid keypair '$self->{spec}{$arg}{canon}': $key => $data")
+        throw_argv("Invalid keypair '$self->{spec}{$arg}{canon}': $key => $data",
+                   usage => $self->{usage})
             unless _validate_value($self, { $key => $data },
                                $self->{spec}{$arg}{valid});
     }
@@ -503,14 +509,17 @@ sub _list {
         $value = defined $val ? $val : shift @{$self->{target}};
         if (! defined $val) {
             if (! defined $value) {
-                throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value");
+                throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value",
+                           usage => $self->{usage});
             }
             $value =~ s/^$NEGATIVE(.*)$/$1/;
         }
 
-        throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
+        throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value",
+                   usage => $self->{usage})
             if ! defined $val and _find_arg($self, $value);
-        throw_argv("Invalid list option $self->{spec}{$arg}{canon} = $value")
+        throw_argv("Invalid list option $self->{spec}{$arg}{canon} = $value",
+                   usage => $self->{usage})
             unless _validate_value($self, $value, $self->{spec}{$arg}{valid});
     }
     push @{$self->{parsed}}, [ $arg, $value, $neg ];
@@ -524,20 +533,24 @@ sub _parameter {
     my ($self, $arg, $val, $neg) = @_;
     my $value;
     if ($neg) {
-        throw_argv("Negated parameter option can't take a value: $self->{spec}{$arg}{canon}=$val")
+        throw_argv("Negated parameter option can't take a value: $self->{spec}{$arg}{canon}=$val",
+                   usage => $self->{usage})
             if defined $val;
     }
     else {
         $value = defined $val ? $val : shift @{$self->{target}};
         if (! defined $val) {
             if (! defined $value) {
-                throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value");
+                throw_argv("Option '$self->{spec}{$arg}{canon}' requires a value",
+                           usage => $self->{usage});
             }
             $value =~ s/^$NEGATIVE(.*)$/$1/;
         }
-        throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value")
+        throw_argv("Ambiguous value for $self->{spec}{$arg}{canon} could be option: $value",
+                   usage => $self->{usage})
             if ! defined $val and _find_arg($self, $value);
-        throw_argv("Invalid parameter $self->{spec}{$arg}{canon} = $value")
+        throw_argv("Invalid parameter $self->{spec}{$arg}{canon} = $value",
+                   usage => $self->{usage})
             unless _validate_value($self, $value, $self->{spec}{$arg}{valid});
     }
     push @{$self->{parsed}}, [ $arg, $value, $neg ];
@@ -687,10 +700,12 @@ sub _split_equals {
 
 sub _switch {
     my ($self, $arg, $val, $neg) = @_;
-    throw_argv("Switch can't take a value: $self->{spec}{$arg}{canon}=$val")
+    throw_argv("Switch can't take a value: $self->{spec}{$arg}{canon}=$val",
+               usage => $self->{usage})
         if defined $val;
     if (! $neg ) {
-        throw_argv("Switch used twice: $self->{spec}{$arg}{canon}")
+        throw_argv("Switch used twice: $self->{spec}{$arg}{canon}",
+                   usage => $self->{usage})
             if $self->{seen}{$arg} > 1;
     }
     push @{$self->{parsed}}, [ $arg, 1, $neg ];
