@@ -24,7 +24,7 @@ my $VALID_NAME      = qr/$VALID_LONG|$VALID_SHORT|$VALID_BARE/;
 my $SHORT_BUNDLE    = qr/-[$VALID_STARTCHAR]{2,}/;
 my $NEGATIVE        = qr/(?:--)?no-/;
 
-my @valid_keys = qw( name type default nocase valid needs canon );
+my @valid_keys = qw( name type default nocase valid needs canon doc );
 my @valid_types = qw( switch counter parameter list keypair);
 
 sub Switch  {
@@ -90,6 +90,8 @@ sub default {
 sub anycase { my $self = shift; $self->{nocase}=1; return $self };
 
 sub needs { my $self = shift; $self->{needs}=[@_]; return $self };
+
+sub doc { my $self = shift; $self->{doc}=shift; return $self };
 
 package Getopt::Lucid;
 
