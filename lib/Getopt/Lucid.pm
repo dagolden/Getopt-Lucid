@@ -368,6 +368,57 @@ sub reset_defaults {
 }
 
 #--------------------------------------------------------------------------#
+# _build_usage()
+#--------------------------------------------------------------------------#
+
+sub _build_usage {
+    my ($self) = @_;
+    my @short_opts;
+    my @doc;
+    for my $opt ( @{ $self->{raw_spec} } ) {
+        my $names = [ split /\|/, $opt->{name} ];
+        push @doc, [
+            _build_usage_left_column( $names, \@short_opts ),
+            $opt->{doc} // ''
+        ];
+    }
+
+    # Can't use List::Util::max without a new dependency because of "use 5.006"
+    my $max_width = 4 + do {
+        my $m = -1;
+        do { $a = length $_->[0]; $m = $a if $m < $a }
+          for @doc;
+        $m;
+    };
+
+    local $" = '';
+    $self->{usage} = "Usage: $0 [-@short_opts] [long options] [arguments]\n";
+    $self->{usage} .= sprintf "\t%-${max_width}s %s\n", @$_ for @doc;
+}
+
+sub _build_usage_left_column {
+    my ($names, $all_short_opts) = @_;
+    my @sorted_names = sort { length $a <=> length $b } @$names;
+
+    my @short_opts = grep { length == 1 } @sorted_names;
+    my @long_opts  = grep { length > 1 } @sorted_names;
+
+    push @$all_short_opts, @short_opts;
+
+    my $group = sub {
+        my $list = shift;
+        '-' . ( @$list == 1 ? $list->[0] : '[' . join( '|', @$list ) . ']' );
+    };
+    my $prepare = sub {
+        my $list = shift;
+        return ( length $list->[0] > 1 ? '-' : '' ) . $group->($list) if @$list;
+        return;
+    };
+
+    return join ', ' => map { $prepare->($_) } \@short_opts, \@long_opts;
+}
+
+#--------------------------------------------------------------------------#
 # _check_prereqs()
 #--------------------------------------------------------------------------#
 
@@ -512,6 +563,7 @@ sub _parse_spec {
         $self->{spec}{$names[0]} = $opt;
         ($self->{strip}{$names[0]} = $names[0]) =~ s/^-+//;
     }
+    _build_usage($self);
     _validate_prereqs($self);
 }
 
