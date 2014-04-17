@@ -1082,6 +1082,17 @@ argument is needed.
     Switch("help|h")->anycase(),    # "Help", "HELP", etc.
   );
 
+=== doc()
+
+Sets the documentation string for an option.
+
+    @spec = (
+      Param("output")->doc("write output to the specified file"),
+    );
+
+This string shows up in the "usage" Getopt::Lucid attaches to the exception
+thrown when the command-line is invalid.
+
 == Validation
 
 Validation happens in two stages.  First, individual parameters may have
@@ -1298,13 +1309,16 @@ contains incorrect or invalid data
 processed and fails to pass specified validation, requirements, or is
 otherwise determined to be invalid
 
-These exception may be caught using an {eval} block and allow the calling
+These exceptions may be caught using an {eval} block and allow the calling
 program to respond differently to each class of exception.
+
+{Getopt::Lucid::Exception::ARGV} comes with an additional {usage} field you
+can use to display a "usage" made out of your option specification.
 
   my $opt;
   eval { $opt = Getopt::Lucid->getopt( \@spec ) };
   if ($@) {
-    print "$@\n" && print_usage() && exit 1
+    print "$@\n" && print $@->usage and exit 1
       if ref $@ eq 'Getopt::Lucid::Exception::ARGV';
     ref $@ ? $@->rethrow : die $@;
   }
