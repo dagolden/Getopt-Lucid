@@ -380,7 +380,7 @@ sub _build_usage {
         my $names = [ split /\|/, $opt->{name} ];
         push @doc, [
             _build_usage_left_column( $names, \@short_opts ),
-            $opt->{doc} // ''
+            _build_usage_right_column( $opt->{doc}, $opt->{default}, $opt->{type} ),
         ];
     }
 
@@ -416,6 +416,22 @@ sub _build_usage_left_column {
     };
 
     return join ', ' => map { $prepare->($_) } \@short_opts, \@long_opts;
+}
+
+sub _build_usage_right_column {
+    my ( $doc, $default, $type ) = @_;
+    my $str = defined $doc ? $doc : '';
+    return $str unless defined $default;
+    my $q = sub { map { /^[A-Za-z0-9_-]*$/ ? $_ : qq{"$_"} } @_ }; # quote
+    for ($type) {
+        $str .= ' (default: ' . (
+            /list/ ? join( ', ' => $q->(@$default) ) :
+            /keypair/ ? (ref $default ne 'HASH' && next) || join ', ' =>
+                sort map { join( '=', $q->(each %$default) ) } 1 .. keys %$default :
+            $q->($_)
+        ) . ')';
+    }
+    return $str;
 }
 
 #--------------------------------------------------------------------------#
