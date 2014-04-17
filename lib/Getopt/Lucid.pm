@@ -235,6 +235,8 @@ sub validate {
     throw_usage("'validate' argument 'requires' must be an array reference")
       if $requires && ref($requires) ne 'ARRAY';
     for my $p ( @$requires ) {
+        throw_spec("Requiring an unspecified option ('$p') in validate()")
+            unless exists $self->{spec}{$p};
         throw_argv("Required option '$self->{spec}{$p}{canon}' not found")
             if ( ! $self->{seen}{$p} );
     }
