@@ -385,10 +385,9 @@ sub _build_usage {
     }
 
     # Can't use List::Util::max without a new dependency because of "use 5.006"
-    my $max_width = 4 + do {
+    my $max_width = 3 + do {
         my $m = -1;
-        do { $a = length $_->[0]; $m = $a if $m < $a }
-          for @doc;
+        do { $a = length $_->[0]; $m = $a if $m < $a } for @doc;
         $m;
     };
 
