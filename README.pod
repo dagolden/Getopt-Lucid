@@ -794,7 +794,7 @@ Kevin McGrath <kmcgrath@cpan.org>
 
 =item *
 
-Nick Patch <patch@cpan.org>
+Nova Patch <patch@cpan.org>
 
 =item *
 
