@@ -825,7 +825,7 @@ __END__
     Param("help")->anycase,            # case insensitivity
   );
   $opt = Getopt::Lucid->getopt( \@adv_spec );
-  $opt->validate( 'requires' => ['input'] );
+  $opt->validate({ 'requires' => ['input'] });
 
   # example with a config file
 
