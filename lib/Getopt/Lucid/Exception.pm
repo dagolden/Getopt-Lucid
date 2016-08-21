@@ -4,7 +4,7 @@ use warnings;
 package Getopt::Lucid::Exception;
 # ABSTRACT: Exception classes for Getopt::Lucid
 
-our $VERSION = '1.07';
+our $VERSION = '1.08';
 
 use Exporter;
 our @ISA = qw/Exporter Exception::Class::Base/;
