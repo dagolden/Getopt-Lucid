@@ -5,6 +5,7 @@ use Exception::Class::TryCatch;
 
 use Getopt::Lucid ':all';
 use Getopt::Lucid::Exception;
+use lib ".";
 use t::ErrorMessages;
 
 # Work around win32 console buffering that can show diags out of order

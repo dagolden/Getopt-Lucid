@@ -8,6 +8,7 @@ Test::More->builder->failure_output(*STDOUT) if $ENV{HARNESS_VERBOSE};
 
 use Getopt::Lucid ':all';
 use Getopt::Lucid::Exception;
+use lib ".";
 use t::ErrorMessages;
 
 sub why {
