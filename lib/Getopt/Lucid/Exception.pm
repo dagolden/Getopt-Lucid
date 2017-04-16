@@ -21,6 +21,7 @@ use Exception::Class 1.23 (
 
     "Getopt::Lucid::Exception::ARGV" => {
         description => "Invalid argument on command line",
+        fields => ['usage'],
     },
 
     "Getopt::Lucid::Exception::Usage" => {
@@ -37,7 +38,7 @@ my %throwers = (
 
 for my $t ( keys %throwers ) {
     no strict 'refs';
-    *{$t} = sub { $throwers{$t}->throw("$_[0]\n") };
+    *{$t} = sub { $throwers{$t}->throw(message => "$_[0]\n", @_[1..$#_]) };
 }
 
 1;
