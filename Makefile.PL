@@ -29,6 +29,7 @@ my %WriteMakefileArgs = (
     "ExtUtils::MakeMaker" => 0,
     "File::Spec" => 0,
     "Test::More" => "0.62",
+    "lib" => 0,
     "vars" => 0
   },
   "VERSION" => "1.08",
@@ -48,6 +49,7 @@ my %FallbackPrereqs = (
   "File::Spec" => 0,
   "Storable" => "2.16",
   "Test::More" => "0.62",
+  "lib" => 0,
   "strict" => 0,
   "vars" => 0,
   "warnings" => 0
