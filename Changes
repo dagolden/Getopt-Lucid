@@ -2,6 +2,8 @@ Revision history for Perl module Getopt::Lucid
 
 {{$NEXT}}
 
+1.09      2018-06-20 23:22:09-06:00 America/Denver
+
     [Added]
 
     - Options object now has a "usage" method that generates
