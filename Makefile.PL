@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use 5.006;
+use 5.008001;
 
 use ExtUtils::MakeMaker 6.17;
 
@@ -13,12 +13,14 @@ my %WriteMakefileArgs = (
   },
   "DISTNAME" => "Getopt-Lucid",
   "LICENSE" => "apache",
-  "MIN_PERL_VERSION" => "5.006",
+  "MIN_PERL_VERSION" => "5.008001",
   "NAME" => "Getopt::Lucid",
   "PREREQ_PM" => {
     "Carp" => 0,
     "Exception::Class" => "1.23",
     "Exporter" => 0,
+    "File::Basename" => 0,
+    "List::Util" => 0,
     "Storable" => "2.16",
     "strict" => 0,
     "warnings" => 0
@@ -46,7 +48,9 @@ my %FallbackPrereqs = (
   "Exception::Class::TryCatch" => "1.10",
   "Exporter" => 0,
   "ExtUtils::MakeMaker" => 0,
+  "File::Basename" => 0,
   "File::Spec" => 0,
+  "List::Util" => 0,
   "Storable" => "2.16",
   "Test::More" => "0.62",
   "lib" => 0,
