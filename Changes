@@ -2,6 +2,11 @@ Revision history for Perl module Getopt::Lucid
 
 {{$NEXT}}
 
+    [Added]
+
+    - Options object now has a "usage" method that generates
+      a usage message from the options spec.
+
     [Changed]
 
     - Unknown option in validation now throws a better error.
