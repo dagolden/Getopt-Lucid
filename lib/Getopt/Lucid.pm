@@ -401,7 +401,8 @@ sub usage {
 
 sub _build_usage_left_column {
     my ($names, $all_short_opts) = @_;
-    my @sorted_names = sort { length $a <=> length $b } map { s/^-*//; $_ } @$names;
+    my @sorted_names =
+      sort { length $a <=> length $b } map { my $s = $_; $s =~ s/^-*//; $s } @$names;
 
     my @short_opts = grep { length == 1 } @sorted_names;
     my @long_opts  = grep { length > 1 } @sorted_names;
