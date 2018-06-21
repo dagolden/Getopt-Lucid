@@ -12,6 +12,7 @@ our @ISA = qw( Exporter );
 
 use Carp;
 use Exporter ();
+use List::Util ();
 use Getopt::Lucid::Exception;
 use Storable 2.16 qw(dclone);
 
@@ -388,11 +389,7 @@ sub _build_usage {
     }
 
     # Can't use List::Util::max without a new dependency because of "use 5.006"
-    my $max_width = 3 + do {
-        my $m = -1;
-        do { $a = length $_->[0]; $m = $a if $m < $a } for @doc;
-        $m;
-    };
+    my $max_width = 3 + max(map{length} @doc);
 
     local $" = '';
     $self->{usage} = "Usage: $0 [-@short_opts] [long options] [arguments]\n";
