@@ -423,15 +423,18 @@ sub _build_usage_right_column {
     my ( $doc, $default, $type ) = @_;
     my $str = defined $doc ? $doc : '';
     return $str unless defined $default;
-    my $q = sub { map { /^[A-Za-z0-9_-]*$/ ? $_ : qq{"$_"} } @_ }; # quote
-    for ($type) {
-        $str .= ' (default: ' . (
-            /list/ ? join( ', ' => $q->(@$default) ) :
-            /keypair/ ? (ref $default ne 'HASH' && next) || join ', ' =>
-                sort map { join( '=', $q->(each %$default) ) } 1 .. keys %$default :
-            $q->($_)
-        ) . ')';
+    $str .= " " if length $str;
+    $str .= "(default: ";
+    if ($type eq 'list') {
+        $str .= join( ", ", @$default );
     }
+    elsif ( $type eq 'keypair' ) {
+        $str .= join( ", ", map { "$_=$default->{$_}" } sort keys %$default );
+    }
+    else {
+        $str .= $default
+    }
+    $str .= ')';
     return $str;
 }
 
