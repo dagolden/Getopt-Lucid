@@ -2,6 +2,10 @@ Revision history for Perl module Getopt::Lucid
 
 {{$NEXT}}
 
+    [Changed]
+
+    - Unknown option in validation now throws a better error.
+
 1.08      2017-04-15 22:49:56-04:00 America/New_York
 
     - Fixed for perls without . in @INC
