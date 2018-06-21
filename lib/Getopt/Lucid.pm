@@ -96,6 +96,8 @@ sub needs { my $self = shift; $self->{needs}=[@_]; return $self };
 
 sub doc { my $self = shift; $self->{doc}=shift; return $self };
 
+sub _clone { my $self = shift; bless { %$self }, ref $self }
+
 package Getopt::Lucid;
 
 #--------------------------------------------------------------------------#
@@ -570,7 +572,13 @@ sub _parameter {
 sub _parse_spec {
     my ($self) = @_;
     my $spec = $self->{raw_spec};
-    for my $opt ( @$spec ) {
+    for my $v ( @$spec ) {
+        my $type = ref $v;
+        throw_spec(
+            "'$type' is not a valid option type"
+        ) unless $type eq 'Getopt::Lucid::Spec';
+    }
+    for my $opt ( map { $_->_clone } @$spec ) {
         my $name = $opt->{name};
         my @names = split( /\|/, $name );
         $opt->{canon} = $names[0];
