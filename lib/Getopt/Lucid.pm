@@ -1045,7 +1045,7 @@ possible.  E.g.:
 
   @spec = (
     Param("input")->default("/dev/random")->needs("output"),
-    Param("output)->default("/dev/null"),
+    Param("output")->default("/dev/null"),
   );
 
 === valid()
@@ -1084,7 +1084,7 @@ exception is thrown.
 
   @spec = (
     Param("input")->needs("output"),
-    Param("output),
+    Param("output"),
   );
 
 === anycase()
