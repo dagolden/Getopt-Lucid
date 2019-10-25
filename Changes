@@ -2,6 +2,10 @@ Revision history for Perl module Getopt::Lucid
 
 {{$NEXT}}
 
+    [Docs]
+
+    - Fixed typo
+
 1.09      2018-06-20 23:22:09-06:00 America/Denver
 
     [Added]
