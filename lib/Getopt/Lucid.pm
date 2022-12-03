@@ -27,7 +27,7 @@ my $VALID_NAME      = qr/$VALID_LONG|$VALID_SHORT|$VALID_BARE/;
 my $SHORT_BUNDLE    = qr/-[$VALID_STARTCHAR]{2,}/;
 my $NEGATIVE        = qr/(?:--)?no-/;
 
-my @valid_keys = qw( name type default nocase valid needs canon doc );
+my @valid_keys = qw( name type default nocase valid needs canon doc placeholder );
 my @valid_types = qw( switch counter parameter list keypair);
 
 sub Switch  {
@@ -95,6 +95,8 @@ sub anycase { my $self = shift; $self->{nocase}=1; return $self };
 sub needs { my $self = shift; $self->{needs}=[@_]; return $self };
 
 sub doc { my $self = shift; $self->{doc}=shift; return $self };
+
+sub placeholder { my $self = shift; $self->{placeholder}=shift; return $self };
 
 sub _clone { my $self = shift; bless { %$self }, ref $self }
 
@@ -385,7 +387,7 @@ sub usage {
     for my $opt ( sort { $a->{strip} cmp $b->{strip} } values %{$self->{spec}} ) {
         my $names = [ @{ $opt->{names} } ];
         push @doc, [
-            _build_usage_left_column( $names, \@short_opts, $opt->{type} ),
+            _build_usage_left_column( $names, \@short_opts, $opt->{type}, $opt->{placeholder} ),
             _build_usage_right_column( $opt->{doc}, $opt->{default}, $opt->{type} ),
         ];
     }
@@ -400,7 +402,7 @@ sub usage {
 }
 
 sub _build_usage_left_column {
-    my ($names, $all_short_opts, $type) = @_;
+    my ($names, $all_short_opts, $type, $placeholder ) = @_;
     my @sorted_names =
       sort { length $a <=> length $b } map { my $s = $_; $s =~ s/^-*//; $s } @$names;
 
@@ -409,10 +411,11 @@ sub _build_usage_left_column {
 
     push @$all_short_opts, @short_opts;
 
+    $placeholder = 'value' if ! defined $placeholder;
     my $value =
-          $type eq 'keypair' ? ' key=<value>'
-        : $type eq 'counter' ? ' [<value>]'
-        : $type ne 'switch'  ? ' <value>'
+          $type eq 'keypair' ? " key=<$placeholder>"
+        : $type eq 'counter' ? " [<$placeholder>]"
+        : $type ne 'switch'  ? " <$placeholder>"
         :                      ''
         ;
 
@@ -1113,6 +1116,26 @@ Sets the documentation string for an option.
     );
 
 This string shows up in the "usage" method.
+
+=== placeholder()
+
+Sets the string used for the value placeholder in the usage for an option.
+If not specified, defaults to C<value>.
+
+For example,
+
+    @spec = (
+      Param("output")->doc("write output to the specified file")
+                     ->placeholder("file"),
+    );
+
+results in
+
+  --output <file>      write output to the specified file
+
+rather than the default of
+
+  --output <value>      write output to the specified file
 
 == Validation
 

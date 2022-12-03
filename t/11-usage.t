@@ -19,7 +19,7 @@ my $prog = basename($0);
 my $spec = [
     Counter("--verbose|v")->doc("turn on verbose output")->default(2),
     Switch("--test")->doc("run in test mode"),
-    Param("--input")->default("test.txt"),
+    Param("--input")->default("test.txt")->placeholder('file'),
     Switch("-r")->doc("recursive"),
     Param("bare"),
     List("libs")->default(qw/one two/),
@@ -30,7 +30,7 @@ my @expectations = (
     qr/^Usage: \Q$prog\E \[-rv] \[long options] \[arguments]$/,
     qr/^\s+--bare <value>\s*$/,
     qr/^\s+--define key=<value>\s+\(default: arch=i386, isize=4\)$/,
-    qr/^\s+--input <value>\s+\(default: test\.txt\)$/,
+    qr/^\s+--input <file>\s+\(default: test\.txt\)$/,
     qr/^\s+--libs <value> \s+\(default: one, two\)$/,
     qr/^\s+-r\s+recursive$/,
     qr/^\s+--test\s+run in test mode$/,
