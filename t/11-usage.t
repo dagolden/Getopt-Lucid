@@ -28,13 +28,13 @@ my $spec = [
 
 my @expectations = (
     qr/^Usage: \Q$prog\E \[-rv] \[long options] \[arguments]$/,
-    qr/^\s+--bare\s*$/,
-    qr/^\s+--define\s+\(default: arch=i386, isize=4\)$/,
-    qr/^\s+--input\s+\(default: test\.txt\)$/,
-    qr/^\s+--libs\s+\(default: one, two\)$/,
+    qr/^\s+--bare <value>\s*$/,
+    qr/^\s+--define key=<value>\s+\(default: arch=i386, isize=4\)$/,
+    qr/^\s+--input <value>\s+\(default: test\.txt\)$/,
+    qr/^\s+--libs <value> \s+\(default: one, two\)$/,
     qr/^\s+-r\s+recursive$/,
     qr/^\s+--test\s+run in test mode$/,
-    qr/^\s+-v, --verbose\s+turn on verbose output \(default: 2\)$/,
+    qr/^\s+-v \[<value>\], --verbose \[<value>\]\s+turn on verbose output \(default: 2\)$/,
 );
 
 plan tests => 2 + @expectations;

@@ -385,22 +385,22 @@ sub usage {
     for my $opt ( sort { $a->{strip} cmp $b->{strip} } values %{$self->{spec}} ) {
         my $names = [ @{ $opt->{names} } ];
         push @doc, [
-            _build_usage_left_column( $names, \@short_opts ),
+            _build_usage_left_column( $names, \@short_opts, $opt->{type} ),
             _build_usage_right_column( $opt->{doc}, $opt->{default}, $opt->{type} ),
         ];
     }
 
-    my $max_width = 3 + List::Util::max( map { length } @doc );
+    my $max_width = 3 + List::Util::max( map { length($_->[0]) } @doc );
 
     my $prog = File::Basename::basename($0);
 
     local $" = '';
     my $usage = "Usage: $prog [-@short_opts] [long options] [arguments]\n"
-      . join( "", map { sprintf( "\t%-${max_width}s %s\n", @$_ ) } @doc );
+      . join( "", map { sprintf( "    %-${max_width}s %s\n", @$_ ) } @doc );
 }
 
 sub _build_usage_left_column {
-    my ($names, $all_short_opts) = @_;
+    my ($names, $all_short_opts, $type) = @_;
     my @sorted_names =
       sort { length $a <=> length $b } map { my $s = $_; $s =~ s/^-*//; $s } @$names;
 
@@ -409,13 +409,20 @@ sub _build_usage_left_column {
 
     push @$all_short_opts, @short_opts;
 
+    my $value =
+          $type eq 'keypair' ? ' key=<value>'
+        : $type eq 'counter' ? ' [<value>]'
+        : $type ne 'switch'  ? ' <value>'
+        :                      ''
+        ;
+
     my $group = sub {
         my $list = shift;
         '-' . ( @$list == 1 ? $list->[0] : '[' . join( '|', @$list ) . ']' );
     };
     my $prepare = sub {
         my $list = shift;
-        return ( length $list->[0] > 1 ? '-' : '' ) . $group->($list) if @$list;
+        return ( length $list->[0] > 1 ? '-' : '' ) . $group->($list) . $value if @$list;
         return;
     };
 
